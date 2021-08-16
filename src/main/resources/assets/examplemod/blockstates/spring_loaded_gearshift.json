@@ -1,0 +1,15 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "examplemod:block/spring_loaded_gearshift/block",
+      "y": 90
+    },
+    "axis=y": {
+      "model": "examplemod:block/spring_loaded_gearshift/block",
+      "x": 90
+    },
+    "axis=z": {
+      "model": "examplemod:block/spring_loaded_gearshift/block"
+    }
+  }
+}
