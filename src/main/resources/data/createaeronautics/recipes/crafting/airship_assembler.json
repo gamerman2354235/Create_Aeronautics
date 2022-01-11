@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " N ",
+    "PCP",
+    "AKA"
+  ],
+  "key": {
+    "K": {
+      "tag": "minecraft:planks"
+    },
+    "A": {
+      "item": "create:andesite_alloy"
+    },
+    "C": {
+      "item": "create:brass_block"
+    },
+    "N": {
+      "tag": "forge:nuggets/iron"
+    },
+    "P": {
+      "tag": "forge:plates/brass"
+    }
+  },
+  "result": {
+    "item": "createaeronautics:airship_assembler",
+    "count": 1
+  }
+}

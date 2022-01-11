@@ -3,6 +3,7 @@ buildscript {
         maven { url = 'https://maven.minecraftforge.net' }
         mavenCentral()
         maven {url='https://repo.spongepowered.org/maven'}
+        maven {url 'https://maven.tterrag.com/' }
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
@@ -16,8 +17,8 @@ apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
 version = '1.0'
-group = 'com.yourname.modid' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'modid'
+group = 'com.eriksonn.createaeronautics' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = 'createaeronautics'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8) // Mojang ships Java 8 to end users, so your mod should target Java 8.
 
@@ -47,7 +48,7 @@ minecraft {
 
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            args "--debug", "--stacktrace", "--scan", "-mixin.config=examplemod.mixins.json".toString()
+            args "--debug", "--stacktrace", "--scan", "-mixin.config=createaeronautics.mixins.json".toString()
             // Recommended logging data for a userdev environment
             // The markers can be changed as needed.
             // "SCAN": For mods scan.
@@ -61,7 +62,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                examplemod {
+                createaeronautics {
                     source sourceSets.main
                 }
             }
@@ -83,7 +84,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                examplemod {
+                createaeronautics {
                     source sourceSets.main
                 }
             }
@@ -105,10 +106,10 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            args '--mod', 'createaeronautics', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
 
             mods {
-                examplemod {
+                createaeronautics {
                     source sourceSets.main
                 }
             }
@@ -126,11 +127,19 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
-    implementation fg.deobf("curse.maven:create-328085:3384090")
-    implementation fg.deobf("curse.maven:flywheel-486392:3384004")
+    //implementation fg.deobf("curse.maven:create-328085:3384090")
+    //implementation fg.deobf("curse.maven:flywheel-486392:3384004")
+    implementation fg.deobf('com.simibubi.create:Create:mc1.16.5_v0.3.2f+465')
+    implementation fg.deobf('com.jozufozu.flywheel:Flywheel:1.16-0.2.4.50')
 
     implementation fg.deobf("curse.maven:applied-energistics-2-223794:3354897")
     implementation fg.deobf("curse.maven:immersive-portals-for-forge-355440:3215256")
+
+    //implementation fg.deobf("curse.maven:pehkui-319596:3545512")
+
+    implementation fg.deobf("curse.maven:curios-309927:3456953")
+    implementation fg.deobf("curse.maven:observerlib-316833:3333962")
+    implementation fg.deobf("curse.maven:astral-sorcery-241721:3333980")
 
     annotationProcessor 'org.spongepowered:mixin:0.8:processor'
 
@@ -156,7 +165,7 @@ dependencies {
 
 }
 mixin {
-    add sourceSets.main, "examplemod.refmap.json"
+    add sourceSets.main, "createaeronautics.refmap.json"
 }
 repositories {
     maven {
@@ -191,14 +200,14 @@ repositories {
 jar {
     manifest {
         attributes([
-            "Specification-Title": "examplemod",
-            "Specification-Vendor": "examplemodsareus",
+            "Specification-Title": "createaeronautics",
+            "Specification-Vendor": "createaeronauticssareus",
             "Specification-Version": "1", // We are version 1 of ourselves
             "Implementation-Title": project.name,
             "Implementation-Version": "${version}",
-            "Implementation-Vendor" :"examplemodsareus",
+            "Implementation-Vendor" :"createaeronauticssareus",
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-            "MixinConfigs"            : "examplemod.mixins.json"
+            "MixinConfigs"            : "createaeronautics.mixins.json"
         ])
     }
 }

@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "com.eriksonn.createaeronautics.mixins",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "createaeronautics.refmap.json",
+  "mixins": [
+    "RotationPropagatorMixin",
+    "DimensionTypeMixin",
+    "WorldRendererMixin",
+    "WorldEventMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}
