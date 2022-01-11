@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " A ",
+    "SCS",
+	" A "
+  ],
+  "key": {
+    "A": {
+      "tag": "forge:plates/iron"
+    },
+    "C": {
+      "item": "create:andesite_casing"
+    },
+	"S": {
+      "item": "create:shaft"
+    }
+  },
+  "result": {
+    "item": "createaeronautics:torsion_spring",
+    "count": 1
+  }
+}

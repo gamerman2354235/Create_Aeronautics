@@ -1,0 +1,35 @@
+{
+  "type": "create:mechanical_crafting",
+  "pattern": [
+    "KcC  ",
+    "RPDpp",
+	"KcC  "
+  ],
+  "key": {
+    "C": {
+      "tag": "forge:plates/copper"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+	"c": {
+      "item": "create:cogwheel"
+    },
+	"K": {
+      "item": "minecraft:dried_kelp"
+    },
+	"P": {
+      "item": "create:precision_mechanism"
+    },
+	"D": {
+      "item": "minecraft:dropper"
+    },
+	"p": {
+      "item": "create:fluid_pipe"
+    }
+  },
+  "result": {
+    "item": "createaeronautics:stationary_potato_cannon",
+    "count": 1
+  }
+}
