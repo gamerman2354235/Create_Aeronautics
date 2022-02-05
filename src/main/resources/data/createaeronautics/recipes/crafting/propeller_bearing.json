@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " T ",
+    "PCP",
+    "ASA"
+  ],
+  "key": {
+    "S": {
+      "item": "create:shaft"
+    },
+    "P": {
+      "item": "create:andesite_alloy"
+    },
+    "C": {
+      "item": "create:brass_block"
+    },
+    "T": {
+      "item": "create:turntable"
+    },
+    "A": {
+      "tag": "forge:plates/iron"
+    }
+  },
+  "result": {
+    "item": "createaeronautics:propeller_bearing",
+    "count": 1
+  }
+}

@@ -67,6 +67,7 @@ public class AirshipAssemblerBlock extends Block implements ITE<AirshipAssembler
                     if (te.running) {
                         te.disassemble();
                     } else {
+
                         te.assembleNextTick = true;
                     }
 

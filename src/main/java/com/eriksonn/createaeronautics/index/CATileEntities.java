@@ -3,10 +3,13 @@ package com.eriksonn.createaeronautics.index;
 
 import com.eriksonn.createaeronautics.CreateAeronautics;
 import com.eriksonn.createaeronautics.blocks.airship_assembler.AirshipAssemblerTileEntity;
+import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingTileEntity;
 import com.eriksonn.createaeronautics.blocks.torsion_spring.TorsionSpringTileEntity;
 import com.eriksonn.createaeronautics.blocks.stationary_potato_cannon.StationaryPotatoCannonInstance;
 import com.eriksonn.createaeronautics.blocks.stationary_potato_cannon.StationaryPotatoCannonRenderer;
 import com.eriksonn.createaeronautics.blocks.stationary_potato_cannon.StationaryPotatoCannonTileEntity;
+import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingInstance;
+import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingRenderer;
 import com.simibubi.create.content.contraptions.relays.encased.SplitShaftRenderer;
 import com.simibubi.create.content.contraptions.relays.encased.SplitShaftInstance;
 import com.simibubi.create.repack.registrate.util.entry.TileEntityEntry;
@@ -29,6 +32,12 @@ public class CATileEntities {
     public static final TileEntityEntry<AirshipAssemblerTileEntity> AIRSHIP_ASSEMBLER = CreateAeronautics.registrate()
             .tileEntity("airship_assembler", AirshipAssemblerTileEntity::new)
             .validBlocks(CABlocks.AIRSHIP_ASSEMBLER)
+            .register();
+    public static final TileEntityEntry<PropellerBearingTileEntity> PROPELLER_BEARING = CreateAeronautics.registrate()
+            .tileEntity("propeller_bearing", PropellerBearingTileEntity::new)
+            .instance(() -> BearingInstance::new)
+            .validBlocks(CABlocks.PROPELLER_BEARING)
+            .renderer(() -> BearingRenderer::new)
             .register();
     public static void register() {}
 }

@@ -2,9 +2,11 @@ package com.eriksonn.createaeronautics.index;
 
 import com.eriksonn.createaeronautics.contraptions.AirshipContraption;
 import com.eriksonn.createaeronautics.contraptions.AirshipContraptionEntity;
+import com.eriksonn.createaeronautics.contraptions.AirshipContraptionEntityRenderer;
 import com.eriksonn.createaeronautics.contraptions.AirshipContraptionRenderer;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.components.structureMovement.ContraptionEntityRenderer;
 import com.simibubi.create.content.contraptions.components.structureMovement.ContraptionType;
 import com.simibubi.create.foundation.data.CreateEntityBuilder;
 import com.simibubi.create.foundation.utility.Lang;
@@ -18,7 +20,7 @@ import net.minecraftforge.fml.client.registry.IRenderFactory;
 
 public class CAEntityTypes {
     public static final EntityEntry<AirshipContraptionEntity> AIRSHIP_CONTRAPTION = contraption("airship_contraption", AirshipContraptionEntity::new, () -> {
-        return AirshipContraptionRenderer::new;
+        return AirshipContraptionEntityRenderer::new;
     }, 5, 3, true);
     public static ContraptionType AIRSHIP = ContraptionType.register("airship", AirshipContraption::new);
     public CAEntityTypes() {
