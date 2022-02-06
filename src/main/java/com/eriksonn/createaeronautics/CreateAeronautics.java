@@ -40,18 +40,7 @@ public class CreateAeronautics
 
     private static final NonNullLazyValue<CreateRegistrate> registrate = CreateRegistrate.lazy(CreateAeronautics.MODID);
 
-    private final CADimensions registration;
-
     public CreateAeronautics() {
-        // Register the setup method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-        // Register the enqueueIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
-        // Register the processIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
-        // Register the doClientStuff method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
-
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
@@ -63,29 +52,16 @@ public class CreateAeronautics
         CABlockPartials.clientInit();
 
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        this.registration = new CADimensions();
-        CADimensions var10001 = this.registration;
-        modEventBus.addListener(var10001::registerDimension);
+
+        CADimensions registration = new CADimensions();
+        modEventBus.addListener(registration::registerDimension);
+
         modEventBus.addGenericListener(ParticleType.class, AllParticleTypes::register);
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> {
-            return () -> {
-                CreateAeronauticsClient.onCtorClient(modEventBus, MinecraftForge.EVENT_BUS);
-            };
-        });
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> CreateAeronauticsClient.onCtorClient(modEventBus, MinecraftForge.EVENT_BUS));
     }
     public static ResourceLocation asResource(String path) {
         return new ResourceLocation(MODID, path);
     }
-
-    private void setup(final FMLCommonSetupEvent event)
-    {}
-
-    private void doClientStuff(final FMLClientSetupEvent event) {}
-
-    private void enqueueIMC(final InterModEnqueueEvent event)
-    {}
-
-    private void processIMC(final InterModProcessEvent event) {}
 
     @SuppressWarnings("deprecation")
     public static CreateRegistrate registrate() {
