@@ -46,7 +46,7 @@ minecraft {
     mappings channel: 'parchment', version: "${parchment_version}-${minecraft_version}"
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
     
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
@@ -165,7 +165,7 @@ dependencies {
     implementation fg.deobf(registrate)
     shade registrate
 
-    annotationProcessor 'org.spongepowered:mixin:0.8:processor'
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"
