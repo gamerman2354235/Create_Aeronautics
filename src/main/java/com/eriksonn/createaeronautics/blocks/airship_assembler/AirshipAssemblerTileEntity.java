@@ -95,13 +95,15 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
         if (!this.level.isClientSide && this.assembleNextTick) {
             this.assembleNextTick = false;
             if (!this.running) {
-
+                System.out.println("assembly start");
                 this.assemble();
+                System.out.println("assembly complete");
             }
             time=0;
         }
         if(this.movedContraption!=null)
         {
+
 time++;
 float angle=time*5.5f;
 MatrixStack[] stack = new MatrixStack[1];
@@ -116,6 +118,8 @@ stack[0].mulPose(Q);
             //this.movedContraption.applyRotation(axis,time);
         }
 
+        this.running = this.level==AirshipDimensionManager.INSTANCE.getWorld();
+
     }
     public void lazyTick() {
         super.lazyTick();
@@ -125,7 +129,8 @@ stack[0].mulPose(Q);
 
     }
     public void attach(AirshipContraptionEntity contraption) {
-        BlockState blockState = this.getBlockState();
+        this.movedContraption = contraption;
+        /*BlockState blockState = this.getBlockState();
         if (contraption.getContraption() instanceof BearingContraption) {
             if (blockState.hasProperty(BlockStateProperties.FACING)) {
                 this.movedContraption = contraption;
@@ -138,16 +143,20 @@ stack[0].mulPose(Q);
                 }
 
             }
-        }
+        }*/
     }
     public void disassemble() {
         if (this.running || this.movedContraption != null) {
 
+            int plotId=AirshipManager.getIdFromPlotPos(this.worldPosition);
+
+
             if (this.movedContraption != null) {
                 this.movedContraption.disassemble();
+
                 AllSoundEvents.CONTRAPTION_DISASSEMBLE.playOnServer(this.level, this.worldPosition);
             }
-
+            //AirshipManager.INSTANCE.removePlot(plotId);
             this.movedContraption = null;
             this.running = false;
             this.assembleNextTick = false;

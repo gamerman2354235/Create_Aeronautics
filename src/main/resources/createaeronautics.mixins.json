@@ -4,10 +4,17 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "createaeronautics.refmap.json",
   "mixins": [
-    "RotationPropagatorMixin",
+    "AbstractContraptionEntityMixin",
+    "ContraptionHolderAccessor",
+    "ContraptionMatriciesMixin",
+    "ContraptionMixin",
+    "ContraptionRenderInfoMixin",
+    "ContraptionRenderMixin",
     "DimensionTypeMixin",
-    "WorldRendererMixin",
-    "WorldEventMixin"
+    "Matrix3dAccessor",
+    "RotationPropagatorMixin",
+    "WorldEventMixin",
+    "WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

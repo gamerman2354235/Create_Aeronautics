@@ -14,7 +14,7 @@ import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
 public final class AirshipDimensionManager {
     public static final AirshipDimensionManager INSTANCE = new AirshipDimensionManager();
-    static String MOD_ID = "examplemod";
+    static String MOD_ID = "createaeronautics";
     static ResourceLocation makeId(String id) {
         return new ResourceLocation(MOD_ID, id);
     }

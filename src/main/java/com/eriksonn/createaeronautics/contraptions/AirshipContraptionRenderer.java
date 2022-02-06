@@ -95,7 +95,7 @@ public class AirshipContraptionRenderer extends EntityRenderer<AirshipContraptio
         ms.pushPose();
         //Quaternion Q2 = .copy();
         //Q2.mul(Q);
-        ms.mulPose(entity.Quat);
+        //ms.mulPose(entity.Quat);
         //ms.mulPose();
         //renderer.render(ms,buffer);
         //buffer.draw();

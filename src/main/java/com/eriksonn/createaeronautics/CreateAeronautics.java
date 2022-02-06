@@ -3,13 +3,18 @@ package com.eriksonn.createaeronautics;
 
 import com.eriksonn.createaeronautics.groups.ModGroup;
 import com.eriksonn.createaeronautics.index.*;
+import com.simibubi.create.CreateClient;
 import com.simibubi.create.repack.registrate.util.NonNullLazyValue;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.particles.ParticleType;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -61,6 +66,15 @@ public class CreateAeronautics
         this.registration = new CADimensions();
         CADimensions var10001 = this.registration;
         modEventBus.addListener(var10001::registerDimension);
+        modEventBus.addGenericListener(ParticleType.class, AllParticleTypes::register);
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> {
+            return () -> {
+                CreateAeronauticsClient.onCtorClient(modEventBus, MinecraftForge.EVENT_BUS);
+            };
+        });
+    }
+    public static ResourceLocation asResource(String path) {
+        return new ResourceLocation(MODID, path);
     }
 
     private void setup(final FMLCommonSetupEvent event)
