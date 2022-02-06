@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=false": {
+      "model": "createaeronautics:block/airship_assembler/block"
+    },
+    "active=true": {
+      "model": "createaeronautics:block/airship_assembler/block_on"
+    }
+  }
+}

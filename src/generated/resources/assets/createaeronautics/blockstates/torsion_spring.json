@@ -1,0 +1,15 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "createaeronautics:block/torsion_spring/block",
+      "y": 90
+    },
+    "axis=y": {
+      "model": "createaeronautics:block/torsion_spring/block",
+      "x": 90
+    },
+    "axis=z": {
+      "model": "createaeronautics:block/torsion_spring/block"
+    }
+  }
+}

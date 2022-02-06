@@ -1,0 +1,100 @@
+{
+  "variants": {
+    "axis_along_first=false,facing=down,powered=false": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal",
+      "x": 270,
+      "y": 90
+    },
+    "axis_along_first=true,facing=down,powered=false": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal",
+      "x": 270
+    },
+    "axis_along_first=false,facing=up,powered=false": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal",
+      "x": 90,
+      "y": 90
+    },
+    "axis_along_first=true,facing=up,powered=false": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal",
+      "x": 90
+    },
+    "axis_along_first=false,facing=north,powered=false": {
+      "model": "createaeronautics:block/stationary_potato_cannon/vertical",
+      "y": 180
+    },
+    "axis_along_first=true,facing=north,powered=false": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal",
+      "y": 180
+    },
+    "axis_along_first=false,facing=south,powered=false": {
+      "model": "createaeronautics:block/stationary_potato_cannon/vertical"
+    },
+    "axis_along_first=true,facing=south,powered=false": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal"
+    },
+    "axis_along_first=false,facing=west,powered=false": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal",
+      "y": 90
+    },
+    "axis_along_first=true,facing=west,powered=false": {
+      "model": "createaeronautics:block/stationary_potato_cannon/vertical",
+      "y": 90
+    },
+    "axis_along_first=false,facing=east,powered=false": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal",
+      "y": 270
+    },
+    "axis_along_first=true,facing=east,powered=false": {
+      "model": "createaeronautics:block/stationary_potato_cannon/vertical",
+      "y": 270
+    },
+    "axis_along_first=false,facing=down,powered=true": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal_powered",
+      "x": 270,
+      "y": 90
+    },
+    "axis_along_first=true,facing=down,powered=true": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal_powered",
+      "x": 270
+    },
+    "axis_along_first=false,facing=up,powered=true": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal_powered",
+      "x": 90,
+      "y": 90
+    },
+    "axis_along_first=true,facing=up,powered=true": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal_powered",
+      "x": 90
+    },
+    "axis_along_first=false,facing=north,powered=true": {
+      "model": "createaeronautics:block/stationary_potato_cannon/vertical_powered",
+      "y": 180
+    },
+    "axis_along_first=true,facing=north,powered=true": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal_powered",
+      "y": 180
+    },
+    "axis_along_first=false,facing=south,powered=true": {
+      "model": "createaeronautics:block/stationary_potato_cannon/vertical_powered"
+    },
+    "axis_along_first=true,facing=south,powered=true": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal_powered"
+    },
+    "axis_along_first=false,facing=west,powered=true": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal_powered",
+      "y": 90
+    },
+    "axis_along_first=true,facing=west,powered=true": {
+      "model": "createaeronautics:block/stationary_potato_cannon/vertical_powered",
+      "y": 90
+    },
+    "axis_along_first=false,facing=east,powered=true": {
+      "model": "createaeronautics:block/stationary_potato_cannon/horizontal_powered",
+      "y": 270
+    },
+    "axis_along_first=true,facing=east,powered=true": {
+      "model": "createaeronautics:block/stationary_potato_cannon/vertical_powered",
+      "y": 270
+    }
+  }
+}
