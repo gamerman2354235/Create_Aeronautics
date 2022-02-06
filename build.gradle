@@ -222,7 +222,7 @@ repositories {
     maven {
         //location of the maven for vazkii's mods
         name "blamejared"
-        url "http://maven.blamejared.com/"
+        url "https://maven.blamejared.com/"
     }
 }
 
