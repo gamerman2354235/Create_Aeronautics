@@ -1,0 +1,56 @@
+{
+  "variants": {
+    "direction=push,facing=down": {
+      "model": "createaeronautics:block/propeller_bearing/block_reverse",
+      "x": 180
+    },
+    "direction=pull,facing=down": {
+      "model": "createaeronautics:block/propeller_bearing/block_forward",
+      "x": 180
+    },
+    "direction=push,facing=up": {
+      "model": "createaeronautics:block/propeller_bearing/block_reverse"
+    },
+    "direction=pull,facing=up": {
+      "model": "createaeronautics:block/propeller_bearing/block_forward"
+    },
+    "direction=push,facing=north": {
+      "model": "createaeronautics:block/propeller_bearing/block_reverse",
+      "x": 90
+    },
+    "direction=pull,facing=north": {
+      "model": "createaeronautics:block/propeller_bearing/block_forward",
+      "x": 90
+    },
+    "direction=push,facing=south": {
+      "model": "createaeronautics:block/propeller_bearing/block_reverse",
+      "x": 90,
+      "y": 180
+    },
+    "direction=pull,facing=south": {
+      "model": "createaeronautics:block/propeller_bearing/block_forward",
+      "x": 90,
+      "y": 180
+    },
+    "direction=push,facing=west": {
+      "model": "createaeronautics:block/propeller_bearing/block_reverse",
+      "x": 90,
+      "y": 270
+    },
+    "direction=pull,facing=west": {
+      "model": "createaeronautics:block/propeller_bearing/block_forward",
+      "x": 90,
+      "y": 270
+    },
+    "direction=push,facing=east": {
+      "model": "createaeronautics:block/propeller_bearing/block_reverse",
+      "x": 90,
+      "y": 90
+    },
+    "direction=pull,facing=east": {
+      "model": "createaeronautics:block/propeller_bearing/block_forward",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

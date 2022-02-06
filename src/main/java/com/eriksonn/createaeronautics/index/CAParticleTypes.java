@@ -2,8 +2,6 @@ package com.eriksonn.createaeronautics.index;
 
 import com.eriksonn.createaeronautics.CreateAeronautics;
 import com.eriksonn.createaeronautics.particle.PropellerAirParticleData;
-import com.simibubi.create.Create;
-import com.simibubi.create.content.contraptions.particle.AirFlowParticleData;
 import com.simibubi.create.content.contraptions.particle.ICustomParticleData;
 import com.simibubi.create.foundation.utility.Lang;
 import net.minecraft.client.Minecraft;
@@ -19,25 +17,25 @@ import net.minecraftforge.registries.IForgeRegistry;
 
 import java.util.function.Supplier;
 
-public enum AllParticleTypes {
+public enum CAParticleTypes {
 
     PROPELLER_AIR_FLOW(PropellerAirParticleData::new);
-    private com.eriksonn.createaeronautics.index.AllParticleTypes.ParticleEntry<?> entry;
+    private CAParticleTypes.ParticleEntry<?> entry;
 
-    <D extends IParticleData> AllParticleTypes(Supplier<? extends ICustomParticleData<D>> typeFactory) {
+    <D extends IParticleData> CAParticleTypes(Supplier<? extends ICustomParticleData<D>> typeFactory) {
         String asId = Lang.asId(this.name());
-        entry = new com.eriksonn.createaeronautics.index.AllParticleTypes.ParticleEntry<>(new ResourceLocation(CreateAeronautics.MODID, asId), typeFactory);
+        entry = new CAParticleTypes.ParticleEntry<>(new ResourceLocation(CreateAeronautics.MODID, asId), typeFactory);
     }
 
     public static void register(RegistryEvent.Register<ParticleType<?>> event) {
-        for (com.eriksonn.createaeronautics.index.AllParticleTypes particle : values())
+        for (CAParticleTypes particle : values())
             particle.entry.register(event.getRegistry());
     }
 
     @OnlyIn(Dist.CLIENT)
     public static void registerFactories(ParticleFactoryRegisterEvent event) {
         ParticleManager particles = Minecraft.getInstance().particleEngine;
-        for (com.eriksonn.createaeronautics.index.AllParticleTypes particle : values())
+        for (CAParticleTypes particle : values())
             particle.entry.registerFactory(particles);
     }
 

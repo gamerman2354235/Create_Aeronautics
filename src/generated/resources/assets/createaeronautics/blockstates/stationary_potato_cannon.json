@@ -48,10 +48,7 @@
       "model": "createaeronautics:block/stationary_potato_cannon/vertical",
       "y": 270
     },
-	
-	
-	
-	"axis_along_first=false,facing=down,powered=true": {
+    "axis_along_first=false,facing=down,powered=true": {
       "model": "createaeronautics:block/stationary_potato_cannon/horizontal_powered",
       "x": 270,
       "y": 90

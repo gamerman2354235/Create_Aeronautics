@@ -1,5 +1,6 @@
 package com.eriksonn.createaeronautics.index;
 
+import com.eriksonn.createaeronautics.CreateAeronautics;
 import com.eriksonn.createaeronautics.contraptions.AirshipContraption;
 import com.eriksonn.createaeronautics.contraptions.AirshipContraptionEntity;
 import com.eriksonn.createaeronautics.contraptions.AirshipContraptionEntityRenderer;
@@ -32,7 +33,7 @@ public class CAEntityTypes {
 
     private static <T extends Entity> CreateEntityBuilder<T, ?> register(String name, EntityType.IFactory<T> factory, NonNullSupplier<IRenderFactory<? super T>> renderer, EntityClassification group, int range, int updateFrequency, boolean sendVelocity, boolean immuneToFire, NonNullConsumer<EntityType.Builder<T>> propertyBuilder) {
         String id = Lang.asId(name);
-        return (CreateEntityBuilder) Create.registrate().entity(id, factory, group).properties((b) -> {
+        return (CreateEntityBuilder) CreateAeronautics.registrate().entity(id, factory, group).properties((b) -> {
             b.setTrackingRange(range).setUpdateInterval(updateFrequency).setShouldReceiveVelocityUpdates(sendVelocity);
         }).properties(propertyBuilder).properties((b) -> {
             if (immuneToFire) {

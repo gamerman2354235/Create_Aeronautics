@@ -1,7 +1,7 @@
 package com.eriksonn.createaeronautics.blocks.stationary_potato_cannon;
 
 
-import com.eriksonn.createaeronautics.index.AllShapes;
+import com.eriksonn.createaeronautics.index.CAShapes;
 import com.eriksonn.createaeronautics.index.CATileEntities;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.content.contraptions.base.DirectionalAxisKineticBlock;
@@ -68,7 +68,7 @@ public class StationaryPotatoCannonBlock extends DirectionalAxisKineticBlock imp
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context)
     {
-        return AllShapes.STATIONARY_CANNON.get(state.getValue(FACING));
+        return CAShapes.STATIONARY_CANNON.get(state.getValue(FACING));
 
     }
     @Override
