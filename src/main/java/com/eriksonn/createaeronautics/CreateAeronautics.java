@@ -1,32 +1,20 @@
 package com.eriksonn.createaeronautics;
 
 
-import com.eriksonn.createaeronautics.groups.ModGroup;
+import com.eriksonn.createaeronautics.groups.CAItemGroups;
 import com.eriksonn.createaeronautics.index.*;
-import com.simibubi.create.CreateClient;
 import com.simibubi.create.repack.registrate.util.NonNullLazyValue;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
 import net.minecraft.particles.ParticleType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.stream.Collectors;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -44,8 +32,6 @@ public class CreateAeronautics
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
-        new ModGroup("main");
-
         CABlocks.register();
         CATileEntities.register();
         CAEntityTypes.register();
@@ -56,7 +42,7 @@ public class CreateAeronautics
         CADimensions registration = new CADimensions();
         modEventBus.addListener(registration::registerDimension);
 
-        modEventBus.addGenericListener(ParticleType.class, AllParticleTypes::register);
+        modEventBus.addGenericListener(ParticleType.class, CAParticleTypes::register);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> CreateAeronauticsClient.onCtorClient(modEventBus, MinecraftForge.EVENT_BUS));
     }
     public static ResourceLocation asResource(String path) {

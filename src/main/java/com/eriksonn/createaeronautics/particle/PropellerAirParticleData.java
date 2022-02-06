@@ -1,6 +1,6 @@
 package com.eriksonn.createaeronautics.particle;
 
-import com.eriksonn.createaeronautics.index.AllParticleTypes;
+import com.eriksonn.createaeronautics.index.CAParticleTypes;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
@@ -21,7 +21,7 @@ public class PropellerAirParticleData implements IParticleData, ICustomParticleD
 
     @Override
     public ParticleType<?> getType() {
-        return AllParticleTypes.PROPELLER_AIR_FLOW.get();
+        return CAParticleTypes.PROPELLER_AIR_FLOW.get();
     }
 
     public static final Codec<PropellerAirParticleData> CODEC = RecordCodecBuilder.create(i ->
@@ -73,7 +73,7 @@ public class PropellerAirParticleData implements IParticleData, ICustomParticleD
 
     @Override
     public String writeToString() {
-        return String.format(Locale.ROOT, "%s %d %d %d", AllParticleTypes.PROPELLER_AIR_FLOW.parameter(), posX, posY, posZ);
+        return String.format(Locale.ROOT, "%s %d %d %d", CAParticleTypes.PROPELLER_AIR_FLOW.parameter(), posX, posY, posZ);
     }
 
     @Override
