@@ -1,6 +1,6 @@
 package com.eriksonn.createaeronautics.blocks.torsion_spring;
 
-import com.eriksonn.createaeronautics.index.AllShapes;
+import com.eriksonn.createaeronautics.index.CAShapes;
 import com.eriksonn.createaeronautics.index.CATileEntities;
 import com.simibubi.create.content.contraptions.RotationPropagator;
 import com.simibubi.create.content.contraptions.base.*;
@@ -55,7 +55,7 @@ public class TorsionSpringBlock extends AbstractEncasedShaftBlock implements ITE
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext context)
     {
-        return AllShapes.TORSION_SPRING.get(state.getValue(AXIS));
+        return CAShapes.TORSION_SPRING.get(state.getValue(AXIS));
 
     }
     //@Override

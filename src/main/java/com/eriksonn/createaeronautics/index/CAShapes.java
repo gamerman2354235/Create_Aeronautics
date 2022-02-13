@@ -11,7 +11,7 @@ import java.util.function.BiFunction;
 
 import static net.minecraft.util.Direction.UP;
 
-public class AllShapes {
+public class CAShapes {
 
     public static final VoxelShaper
     STATIONARY_CANNON = shape(0, 0, 0, 16, 12, 16)
@@ -30,11 +30,11 @@ public class AllShapes {
             .add(4, 12, 4, 12, 13, 12)
             .add(6, 13, 6,10, 16, 10)
             .forAxis();
-    private static AllShapes.Builder shape(VoxelShape shape) {
-        return new AllShapes.Builder(shape);
+    private static CAShapes.Builder shape(VoxelShape shape) {
+        return new CAShapes.Builder(shape);
     }
 
-    private static AllShapes.Builder shape(double x1, double y1, double z1, double x2, double y2, double z2) {
+    private static CAShapes.Builder shape(double x1, double y1, double z1, double x2, double y2, double z2) {
         return shape(cuboid(x1, y1, z1, x2, y2, z2));
     }
 
@@ -50,16 +50,16 @@ public class AllShapes {
             this.shape = shape;
         }
 
-        public AllShapes.Builder add(VoxelShape shape) {
+        public CAShapes.Builder add(VoxelShape shape) {
             this.shape = VoxelShapes.or(this.shape, shape);
             return this;
         }
 
-        public AllShapes.Builder add(double x1, double y1, double z1, double x2, double y2, double z2) {
+        public CAShapes.Builder add(double x1, double y1, double z1, double x2, double y2, double z2) {
             return add(cuboid(x1, y1, z1, x2, y2, z2));
         }
 
-        public AllShapes.Builder erase(double x1, double y1, double z1, double x2, double y2, double z2) {
+        public CAShapes.Builder erase(double x1, double y1, double z1, double x2, double y2, double z2) {
             this.shape =
                     VoxelShapes.join(shape, cuboid(x1, y1, z1, x2, y2, z2), IBooleanFunction.ONLY_FIRST);
             return this;

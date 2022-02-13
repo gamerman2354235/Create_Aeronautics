@@ -1,0 +1,9 @@
+{
+  "block.createaeronautics.airship_assembler": "Airship Assembler",
+  "block.createaeronautics.levitite_casing": "Levitite Casing",
+  "block.createaeronautics.propeller_bearing": "Propeller Bearing",
+  "block.createaeronautics.stationary_potato_cannon": "Stationary Potato Cannon",
+  "block.createaeronautics.torsion_spring": "Torsion Spring",
+  "entity.createaeronautics.airship_contraption": "Airship Contraption",
+  "itemGroup.main_group": "Create: Aeronautics"
+}
