@@ -42,6 +42,7 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
     public AirshipContraption airshipContraption;
     public int plotId =0;
     PhysicsManager physicsManager;
+
     public AirshipContraptionEntity(EntityType<?> type, World world) {
 
         super(type, world);
@@ -58,6 +59,7 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
         entity.airshipContraption=contraption;
         AirshipManager.INSTANCE.tryAddEntity(0,entity);
         System.out.println("Airship entity created");
+        entity.physicsManager.init();
         return entity;
 
     }
@@ -108,12 +110,14 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
     protected void readAdditional(CompoundNBT compound, boolean spawnPacket) {
         super.readAdditional(compound, spawnPacket);
         plotId = compound.getInt("PlotId");
+        physicsManager.readAdditional(compound, spawnPacket);
     }
 
     @Override
     protected void writeAdditional(CompoundNBT compound, boolean spawnPacket) {
         super.writeAdditional(compound, spawnPacket);
         compound.putInt("PlotId", plotId);
+        physicsManager.writeAdditional(compound, spawnPacket);
     }
     @Override
     public AirshipRotationState getRotationState() {
