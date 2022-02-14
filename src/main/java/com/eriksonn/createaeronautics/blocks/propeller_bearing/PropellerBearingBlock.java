@@ -1,10 +1,10 @@
 package com.eriksonn.createaeronautics.blocks.propeller_bearing;
 
 import com.eriksonn.createaeronautics.index.CATileEntities;
+import com.eriksonn.createaeronautics.mixins.MechanicalBearingTileEntityAccessor;
 import com.simibubi.create.AllTileEntities;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingBlock;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.MechanicalBearingTileEntity;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.MechanicalBearingTileEntityAccessor;
 import com.simibubi.create.foundation.block.ITE;
 import com.simibubi.create.foundation.utility.Lang;
 import net.minecraft.block.Block;
@@ -60,7 +60,7 @@ public class PropellerBearingBlock extends BearingBlock implements ITE<Propeller
                     te.disassemble();
                     return;
                 }
-                MechanicalBearingTileEntityAccessor.setAssembleNextTick(te,true);
+                ((MechanicalBearingTileEntityAccessor) te).setAssembleNextTick(true);
                 //te.assembleNextTick
             });
             return ActionResultType.SUCCESS;

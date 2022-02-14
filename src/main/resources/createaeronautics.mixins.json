@@ -12,6 +12,8 @@
     "ContraptionRenderMixin",
     "DimensionTypeMixin",
     "Matrix3dAccessor",
+    "MechanicalBearingTileEntityAccessor",
+    "PotatoProjectileEntityMixin",
     "RotationPropagatorMixin",
     "WorldEventMixin",
     "WorldRendererMixin"

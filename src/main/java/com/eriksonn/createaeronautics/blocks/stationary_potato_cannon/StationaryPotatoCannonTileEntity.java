@@ -178,7 +178,10 @@ public class StationaryPotatoCannonTileEntity extends KineticTileEntity {
             float sprayChange = 360.0F / (float)projectileType.getSplit();
 
             for(int i = 0; i < projectileType.getSplit(); ++i) {
-                PotatoProjectileEntity projectile = (PotatoProjectileEntity) AllEntityTypes.POTATO_PROJECTILE.create(this.level);
+                PotatoProjectileEntity projectile = AllEntityTypes.POTATO_PROJECTILE.create(this.level);
+                // == This is the new code that fixes the death message. ==
+                ((PotatoProjectileEntityFix) projectile).setIsFromStationaryPotatoCannon(true);
+                // ========================================================
                 projectile.setItem(currentStack);
 
                 //projectile.setEnchantmentEffectsFromCannon(stack);
