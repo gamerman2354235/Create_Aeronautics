@@ -10,6 +10,7 @@ import com.simibubi.create.content.contraptions.components.structureMovement.*;
 import com.simibubi.create.foundation.collision.Matrix3d;
 import com.simibubi.create.foundation.utility.AngleHelper;
 import com.simibubi.create.foundation.utility.VecHelper;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -28,6 +29,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -41,11 +43,14 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
     public Vector3d velocity;
     public AirshipContraption airshipContraption;
     public int plotId =0;
-    PhysicsManager physicsManager;
+    public PhysicsManager physicsManager;
+    Map<BlockPos,BlockState> sails;
+    public Map<BlockPos,ControlledContraptionEntity> subContraptions = new HashMap<>();
 
     public AirshipContraptionEntity(EntityType<?> type, World world) {
 
         super(type, world);
+        sails=new HashMap<>();
         physicsManager=new PhysicsManager(this);
         System.out.println("New airship entity");
     }
@@ -59,7 +64,7 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
         entity.airshipContraption=contraption;
         AirshipManager.INSTANCE.tryAddEntity(0,entity);
         System.out.println("Airship entity created");
-        entity.physicsManager.init();
+
         return entity;
 
     }

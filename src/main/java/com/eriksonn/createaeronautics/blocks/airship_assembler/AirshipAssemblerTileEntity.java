@@ -95,9 +95,10 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
         if (!this.level.isClientSide && this.assembleNextTick) {
             this.assembleNextTick = false;
             if (!this.running) {
-                System.out.println("assembly start");
+                //System.out.println("assembly start");
                 this.assemble();
-                System.out.println("assembly complete");
+
+                //System.out.println("assembly complete");
             }
             time=0;
         }

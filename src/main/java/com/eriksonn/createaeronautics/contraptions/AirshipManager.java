@@ -7,6 +7,7 @@ import com.eriksonn.createaeronautics.utils.AbstractContraptionEntityExtension;
 import com.simibubi.create.AllMovementBehaviours;
 import com.simibubi.create.content.contraptions.components.structureMovement.*;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.MechanicalBearingTileEntity;
+import com.simibubi.create.content.contraptions.components.structureMovement.bearing.SailBlock;
 import com.simibubi.create.content.contraptions.components.structureMovement.render.ContraptionRenderDispatcher;
 import com.simibubi.create.foundation.utility.Iterate;
 import net.minecraft.block.Block;
@@ -51,7 +52,8 @@ public class AirshipManager {
         public Map<BlockPos,TileEntity> presentTileEntities =new HashMap<>();
         public List<TileEntity> specialRenderedTileEntitiesChanges=new ArrayList<>();
         public List<TileEntity> maybeInstancedTileEntitiesChanges=new ArrayList<>();
-        public Map<BlockPos,ControlledContraptionEntity> controlledContraptions = new HashMap<>();
+        public Map<BlockPos,BlockState> sails=new HashMap<>();
+        public Map<BlockPos,ControlledContraptionEntity> subContraptions = new HashMap<>();
         public int removeTimer=0;//need to wait abit to prevent client render crash
     }
     AirshipManager()
@@ -94,9 +96,10 @@ public class AirshipManager {
                         {
                             contraptionEntity = ((ContraptionHolderAccessor)tile).getMovedContraption();
                         }
-                        if(contraptionEntity!=null && !data.controlledContraptions.containsKey(entry2.getKey()))
+                        if(contraptionEntity!=null && !entity.subContraptions.containsKey(entry2.getKey()))
                         {
-                            data.controlledContraptions.put(entry2.getKey(),contraptionEntity);
+                            entity.subContraptions.put(entry2.getKey(),contraptionEntity);
+                            data.subContraptions.put(entry2.getKey(),contraptionEntity);
                             data.addedContraptions.add(contraptionEntity);
                         }
                         if(contraptionEntity!=null)
@@ -109,6 +112,9 @@ public class AirshipManager {
                         }
                     }
                 }
+
+                entity.subContraptions.entrySet().removeIf(iteratorEntry -> !iteratorEntry.getValue().isAlive());
+                data.subContraptions.entrySet().removeIf(iteratorEntry -> !iteratorEntry.getValue().isAlive());
             }else
             {
                 ForgeChunkManager.forceChunk(world, CreateAeronautics.MODID, pos, chunkPos.x, chunkPos.z, false, true);
@@ -119,6 +125,7 @@ public class AirshipManager {
             if(a>5)
                 removePlot(plotToRemove);
         }
+
     }
     public void performClientBlockStateChanges(AirshipContraptionEntity entity)
     {
@@ -148,12 +155,16 @@ public class AirshipManager {
             if(entity.level.isClientSide) {
                 for (AbstractContraptionEntity controlledEntity : changes.addedContraptions) {
                     ContraptionHandler.addSpawnedContraptionsToCollisionList(controlledEntity, entity.level);
+
                 }
+
                 changes.addedContraptions.clear();
             }
             entity.airshipContraption.presentTileEntities=changes.presentTileEntities;
             entity.airshipContraption.specialRenderedTileEntities=changes.specialRenderedTileEntitiesChanges;
             entity.airshipContraption.maybeInstancedTileEntities=changes.maybeInstancedTileEntitiesChanges;
+            entity.sails=changes.sails;
+            entity.subContraptions=changes.subContraptions;
         }
     }
     public void blockStateChange(BlockPos pos, BlockState oldState, BlockState newState)
@@ -179,11 +190,18 @@ public class AirshipManager {
                     currentChange.specialRenderedTileEntitiesChanges.remove(oldTe);
                     currentChange.maybeInstancedTileEntitiesChanges.remove(oldTe);
                 }
+                entity.sails.remove(pos);
+                currentChange.sails.remove(pos);
             }
             if(te!=null)
                 AddTileData(currentChange,te,pos,newState);
             currentChange.ClientBlockStateChanges.put(pos, newState);
             entity.airshipContraption.setBlockState(pos, newState);
+            if(newState.getBlock() instanceof SailBlock)
+            {
+                entity.sails.put(pos,newState);
+                currentChange.sails.put(pos,newState);
+            }
         }
 
     }
