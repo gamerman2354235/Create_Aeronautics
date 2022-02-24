@@ -87,11 +87,11 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
 
         physicsManager.tick();
 
-        centerOfMassOffset=physicsManager.centerOfMass;
+
         //Vector3d particlePos = toGlobalVector(new Vector3d(0,0,0),0);
         //level.addParticle(new RedstoneParticleData(1,1,1,1),particlePos.x,particlePos.y,particlePos.z,0,0,0);
         //CurrentAxisAngle= (float) (Math.PI*0.125f);
-        //this.getContraption().getContraptionWorld().tickBlockEntities();
+        this.getContraption().getContraptionWorld().tickBlockEntities();
 
 
     }
@@ -144,8 +144,8 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
     }
     public Vector3d toGlobalVector(Vector3d localVec, float partialTicks) {
         Vector3d rotationOffset = VecHelper.getCenterOf(BlockPos.ZERO);
-        //localVec = localVec.subtract(rotationOffset).subtract(centerOfMassOffset);
-        localVec = localVec.subtract(rotationOffset);
+        localVec = localVec.subtract(rotationOffset).subtract(centerOfMassOffset);
+        //localVec = localVec.subtract(rotationOffset);
         localVec = applyRotation(localVec, partialTicks);
         localVec = localVec.add(rotationOffset)
                 .add(getAnchorVec());
@@ -158,11 +158,11 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
                 .subtract(rotationOffset);
         globalVec = reverseRotation(globalVec, partialTicks);
         globalVec = globalVec.add(rotationOffset);
-        return globalVec;
-        //return globalVec.add(centerOfMassOffset);
+        //return globalVec;
+        return globalVec.add(centerOfMassOffset);
     }
     protected StructureTransform makeStructureTransform() {
-        BlockPos offset = new BlockPos(this.getAnchorVec().add(0.0D, 0.0D, 0.0D));
+        BlockPos offset = new BlockPos(this.getAnchorVec().subtract(centerOfMassOffset));
         return new StructureTransform(offset, 0.0F, 0, 0.0F);
     }
     @Override
@@ -234,9 +234,8 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
         for(var8 = 0; var8 < var7; ++var8) {
             MatrixStack stack = var6[var8];
             stack.translate(0.5,0.5,0.5);
-            //stack.translate(centerOfMassOffset.x,centerOfMassOffset.y,centerOfMassOffset.z);
             stack.mulPose(Q);
-            //stack.translate(-centerOfMassOffset.x,-centerOfMassOffset.y,-centerOfMassOffset.z);
+            stack.translate(-centerOfMassOffset.x,-centerOfMassOffset.y,-centerOfMassOffset.z);
             stack.translate(-0.5,-0.5,-0.5);
             //stack.translate(-0.5D, 0.0D, -0.5D);
         }

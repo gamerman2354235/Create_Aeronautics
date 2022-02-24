@@ -30,7 +30,7 @@ public class ContraptionMatriciesMixin {
     @Shadow MatrixStack model;
 
     @Inject(locals = LocalCapture.CAPTURE_FAILHARD,remap=false,method = "setup", at = @At(remap=false,value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/AbstractContraptionEntity;doLocalTransforms(F[Lcom/mojang/blaze3d/matrix/MatrixStack;)V"))
-    public void onSetupTransforms(MatrixStack viewProjection, AbstractContraptionEntity entity, CallbackInfo ci)
+    private void onSetupTransforms(MatrixStack viewProjection, AbstractContraptionEntity entity, CallbackInfo ci)
     {
         if(entity instanceof ControlledContraptionEntity && entity.level.dimension() == AirshipDimensionManager.WORLD_ID)
         {

@@ -5,7 +5,6 @@ import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingT
 import com.eriksonn.createaeronautics.dimension.AirshipDimensionManager;
 import com.eriksonn.createaeronautics.index.CABlocks;
 import com.eriksonn.createaeronautics.index.CATileEntities;
-import com.mojang.datafixers.types.templates.Tag;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.AllTileEntities;
 import com.simibubi.create.content.contraptions.components.fan.EncasedFanTileEntity;
@@ -13,25 +12,17 @@ import com.simibubi.create.content.contraptions.components.structureMovement.Con
 import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.SailBlock;
 import com.simibubi.create.foundation.utility.VecHelper;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagCollectionManager;
-import net.minecraft.tags.TagRegistry;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.world.gen.feature.template.TagMatchRuleTest;
 import net.minecraft.world.gen.feature.template.Template;
-import net.minecraftforge.common.Tags;
 
 import java.util.*;
 
@@ -71,30 +62,34 @@ public class PhysicsManager {
         orientation=Quaternion.ONE.copy();
         //orientation=new Quaternion(1,0,0,1);
         //orientation.normalize();
-        contraption=entity.airshipContraption;
+
         this.entity=entity;
         momentum=Vector3d.ZERO;
         LeviCivitaTensor=new double[3][3][3];
         LeviCivitaTensor[0][1][2]=LeviCivitaTensor[2][0][1]=LeviCivitaTensor[1][2][0]=1;
         LeviCivitaTensor[2][1][0]=LeviCivitaTensor[0][2][1]=LeviCivitaTensor[1][0][2]=-1;
         principialRotation=Quaternion.ONE.copy();
-        principialRotation=new Quaternion(1,2,3,4);
-        principialRotation.normalize();
+        //principialRotation=new Quaternion(1,2,3,4);
+        //principialRotation.normalize();
     }
-    public void init()
+    public void tryInit()
     {
-        updateLevititeBuoyancy();
+        if(!isInitialized) {
+            contraption=entity.airshipContraption;
+            updateCenterOfMass();
+            updateLevititeBuoyancy();
+            isInitialized=true;
+        }
     }
     public void tick()
     {
         contraption=entity.airshipContraption;
+
         if(contraption==null)
             return;
         updateCenterOfMass();
-        if(!isInitialized) {
-            init();
-            isInitialized=true;
-        }
+        tryInit();
+
         //orientation=new Quaternion(0,0,0.3827f,0.9239f);
         //orientation.normalize();
 
@@ -126,7 +121,7 @@ public class PhysicsManager {
 
 
         CurrentAxisAngle+=0.01f;
-        orientation=new Quaternion(s*CurrentAxis.x(),s*CurrentAxis.y(),s*CurrentAxis.z(),c);
+        //orientation=new Quaternion(s*CurrentAxis.x(),s*CurrentAxis.y(),s*CurrentAxis.z(),c);
 
         entity.quat=orientation.copy();
         entity.velocity=globalVelocity.scale(dt);
@@ -246,6 +241,7 @@ public class PhysicsManager {
             }
         }
         centerOfMass=centerOfMass.scale(1.0/mass);
+        entity.centerOfMassOffset=centerOfMass;
     }
     double getBlockMass(Template.BlockInfo info)
     {

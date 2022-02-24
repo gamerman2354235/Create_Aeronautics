@@ -14,7 +14,8 @@
     "Matrix3dAccessor",
     "RotationPropagatorMixin",
     "WorldEventMixin",
-    "WorldRendererMixin"
+    "WorldRendererMixin",
+    "ContraptionColliderMixin"
   ],
   "injectors": {
     "defaultRequire": 1
