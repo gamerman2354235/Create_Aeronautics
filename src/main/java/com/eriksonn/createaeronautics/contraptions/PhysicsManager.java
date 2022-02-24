@@ -5,6 +5,8 @@ import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingT
 import com.eriksonn.createaeronautics.dimension.AirshipDimensionManager;
 import com.eriksonn.createaeronautics.index.CABlocks;
 import com.eriksonn.createaeronautics.index.CATileEntities;
+import com.mojang.datafixers.types.templates.Tag;
+import com.simibubi.create.AllTags;
 import com.simibubi.create.AllTileEntities;
 import com.simibubi.create.content.contraptions.components.fan.EncasedFanTileEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.Contraption;
@@ -13,14 +15,23 @@ import com.simibubi.create.content.contraptions.components.structureMovement.bea
 import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.BlockStateProperties;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagCollectionManager;
+import net.minecraft.tags.TagRegistry;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.world.gen.feature.template.TagMatchRuleTest;
 import net.minecraft.world.gen.feature.template.Template;
+import net.minecraftforge.common.Tags;
 
 import java.util.*;
 
@@ -50,6 +61,9 @@ public class PhysicsManager {
     final double gravity=5.00;// m/s^2
     BuoyancyController levititeBuoyancyController=new BuoyancyController(6.0);
     boolean isInitialized=false;
+
+    Vector3f CurrentAxis=new Vector3f(1,1,1);
+    float CurrentAxisAngle = 0;
 
 
     public PhysicsManager(AirshipContraptionEntity entity)
@@ -103,6 +117,17 @@ public class PhysicsManager {
         momentum=momentum.scale(0.995);
         globalVelocity=momentum.scale(dt/mass);
         localVelocity = rotateQuatReverse(globalVelocity,orientation);
+
+        float c = (float)Math.cos(CurrentAxisAngle);
+        float s = (float)Math.sin(CurrentAxisAngle);
+        CurrentAxis=new Vector3f(c,3,s);
+        CurrentAxis=new Vector3f(0,1,0);
+        CurrentAxis.normalize();
+
+
+        CurrentAxisAngle+=0.01f;
+        orientation=new Quaternion(s*CurrentAxis.x(),s*CurrentAxis.y(),s*CurrentAxis.z(),c);
+
         entity.quat=orientation.copy();
         entity.velocity=globalVelocity.scale(dt);
         entity.setDeltaMovement(globalVelocity.scale(dt));
@@ -214,13 +239,25 @@ public class PhysicsManager {
         centerOfMass=Vector3d.ZERO;
         for (Map.Entry<BlockPos, Template.BlockInfo> entry : contraption.getBlocks().entrySet()) {
             if (!entry.getValue().state.isAir()) {
-                float blockMass=1.0f;
+                double blockMass=getBlockMass(entry.getValue());
                 Vector3d pos=new Vector3d(entry.getKey().getX(),entry.getKey().getY(),entry.getKey().getZ());
                 centerOfMass=centerOfMass.add(pos.scale(blockMass));
                 mass+=blockMass;
             }
         }
         centerOfMass=centerOfMass.scale(1.0/mass);
+    }
+    double getBlockMass(Template.BlockInfo info)
+    {
+        if(info.state.is(BlockTags.WOOL))
+        {
+            return 0.2;
+        }
+        if(AllTags.AllBlockTags.WINDMILL_SAILS.matches(info.state))
+        {
+            return 0.2;
+        }
+        return 1.0;
     }
     void updateInertia()
     {
@@ -231,7 +268,7 @@ public class PhysicsManager {
         {
             if(!entry.getValue().state.isAir())
             {
-                float blockMass=1.0f;
+                double blockMass=getBlockMass(entry.getValue());
                 Vector3d pos=getLocalCoordinate(entry.getKey());
                 double[] posArray=new double[]{pos.x,pos.y,pos.z};
 

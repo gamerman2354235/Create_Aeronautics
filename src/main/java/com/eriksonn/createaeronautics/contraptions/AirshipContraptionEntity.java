@@ -12,12 +12,15 @@ import com.simibubi.create.foundation.utility.AngleHelper;
 import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.particle.FallingDustParticle;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.particles.ParticleTypes;
+import net.minecraft.particles.RedstoneParticleData;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
@@ -37,8 +40,7 @@ import java.util.UUID;
 public class AirshipContraptionEntity extends AbstractContraptionEntity {
 
     float time =0;
-    Vector3f CurrentAxis=new Vector3f(1,1,1);
-    float CurrentAxisAngle = 0;
+
     public Quaternion quat =Quaternion.ONE;
     public Vector3d velocity;
     public AirshipContraption airshipContraption;
@@ -46,6 +48,7 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
     public PhysicsManager physicsManager;
     Map<BlockPos,BlockState> sails;
     public Map<BlockPos,ControlledContraptionEntity> subContraptions = new HashMap<>();
+    public Vector3d centerOfMassOffset=Vector3d.ZERO;
 
     public AirshipContraptionEntity(EntityType<?> type, World world) {
 
@@ -81,15 +84,12 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
         //stack[0]=new MatrixStack();
         //Vector3d axis = new Vector3d(1,1,1);
         //axis.normalize();
-        float c = (float)Math.cos(CurrentAxisAngle);
-        float s = (float)Math.sin(CurrentAxisAngle);
-        CurrentAxis=new Vector3f(c,3,s);
-                CurrentAxis=new Vector3f(0,1,0);
-        CurrentAxis.normalize();
 
-        //quat=new Quaternion(s*CurrentAxis.x(),s*CurrentAxis.y(),s*CurrentAxis.z(),c);
-        CurrentAxisAngle+=0.005f;
         physicsManager.tick();
+
+        centerOfMassOffset=physicsManager.centerOfMass;
+        //Vector3d particlePos = toGlobalVector(new Vector3d(0,0,0),0);
+        //level.addParticle(new RedstoneParticleData(1,1,1,1),particlePos.x,particlePos.y,particlePos.z,0,0,0);
         //CurrentAxisAngle= (float) (Math.PI*0.125f);
         //this.getContraption().getContraptionWorld().tickBlockEntities();
 
@@ -144,6 +144,7 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
     }
     public Vector3d toGlobalVector(Vector3d localVec, float partialTicks) {
         Vector3d rotationOffset = VecHelper.getCenterOf(BlockPos.ZERO);
+        //localVec = localVec.subtract(rotationOffset).subtract(centerOfMassOffset);
         localVec = localVec.subtract(rotationOffset);
         localVec = applyRotation(localVec, partialTicks);
         localVec = localVec.add(rotationOffset)
@@ -158,10 +159,15 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
         globalVec = reverseRotation(globalVec, partialTicks);
         globalVec = globalVec.add(rotationOffset);
         return globalVec;
+        //return globalVec.add(centerOfMassOffset);
     }
     protected StructureTransform makeStructureTransform() {
         BlockPos offset = new BlockPos(this.getAnchorVec().add(0.0D, 0.0D, 0.0D));
         return new StructureTransform(offset, 0.0F, 0, 0.0F);
+    }
+    @Override
+    public Vector3d getAnchorVec() {
+        return position();
     }
     protected float getStalledAngle() {
         return 0.0f;
@@ -228,7 +234,9 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
         for(var8 = 0; var8 < var7; ++var8) {
             MatrixStack stack = var6[var8];
             stack.translate(0.5,0.5,0.5);
+            //stack.translate(centerOfMassOffset.x,centerOfMassOffset.y,centerOfMassOffset.z);
             stack.mulPose(Q);
+            //stack.translate(-centerOfMassOffset.x,-centerOfMassOffset.y,-centerOfMassOffset.z);
             stack.translate(-0.5,-0.5,-0.5);
             //stack.translate(-0.5D, 0.0D, -0.5D);
         }

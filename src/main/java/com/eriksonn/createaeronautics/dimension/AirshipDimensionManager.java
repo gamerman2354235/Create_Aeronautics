@@ -1,9 +1,19 @@
 package com.eriksonn.createaeronautics.dimension;
 
+import com.mojang.authlib.GameProfile;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.ChatScreen;
+import net.minecraft.client.network.play.ClientPlayNetHandler;
+import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.PacketDirection;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.DynamicRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.Dimension;
 import net.minecraft.world.DimensionType;
@@ -11,9 +21,13 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import org.apache.commons.lang3.Validate;
+
+import java.util.UUID;
 
 public final class AirshipDimensionManager {
     public static final AirshipDimensionManager INSTANCE = new AirshipDimensionManager();
+
     static String MOD_ID = "createaeronautics";
     static ResourceLocation makeId(String id) {
         return new ResourceLocation(MOD_ID, id);
@@ -56,6 +70,7 @@ public final class AirshipDimensionManager {
         WORLD_ID = RegistryKey.create(Registry.DIMENSION_REGISTRY, makeId("airship_storage"));
         SKY_PROPERTIES_ID = makeId("airship_storage");
     }
+
 
     private static MinecraftServer getServer() {
         return ServerLifecycleHooks.getCurrentServer();
