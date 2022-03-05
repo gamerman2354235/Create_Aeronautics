@@ -69,6 +69,7 @@ public class PhysicsManager {
         LeviCivitaTensor[0][1][2]=LeviCivitaTensor[2][0][1]=LeviCivitaTensor[1][2][0]=1;
         LeviCivitaTensor[2][1][0]=LeviCivitaTensor[0][2][1]=LeviCivitaTensor[1][0][2]=-1;
         principialRotation=Quaternion.ONE.copy();
+        //angularMomentum=new Vector3d(0,100,2);
         //principialRotation=new Quaternion(1,2,3,4);
         //principialRotation.normalize();
     }
@@ -105,12 +106,12 @@ public class PhysicsManager {
 
         globalForce=globalForce.add(0,-totalAccumulatedBuoyancy,0);
 
-        momentum = momentum.add(rotateQuat(localForce,orientation)).add(globalForce);
+        momentum = momentum.add(rotateQuat(localForce.scale(dt),orientation)).add(globalForce.scale(dt));
         globalForce = Vector3d.ZERO;
         localForce = Vector3d.ZERO;
 
         momentum=momentum.scale(0.995);
-        globalVelocity=momentum.scale(dt/mass);
+        globalVelocity=momentum.scale(1.0/mass);
         localVelocity = rotateQuatReverse(globalVelocity,orientation);
 
         float c = (float)Math.cos(CurrentAxisAngle);
@@ -230,6 +231,7 @@ public class PhysicsManager {
     }
     void updateCenterOfMass()
     {
+        //Center of mass is the weighted average of the block positions, weighted by their mass
         mass=0;
         centerOfMass=Vector3d.ZERO;
         for (Map.Entry<BlockPos, Template.BlockInfo> entry : contraption.getBlocks().entrySet()) {
@@ -279,11 +281,16 @@ public class PhysicsManager {
     }
     void updateRotation()
     {
-
+        //Find the eigenvector decomposition of the inertia tensor
+        //in terms of principal components and a quaternion rotation
         updateSpectralDecomposition();
+
+        //column vectors of the original inertia tensor
         Vector3d InertiaTensorI=new Vector3d(localInertiaTensor[0][0],localInertiaTensor[0][1],localInertiaTensor[0][2]);
         Vector3d InertiaTensorJ=new Vector3d(localInertiaTensor[1][0],localInertiaTensor[1][1],localInertiaTensor[1][2]);
         Vector3d InertiaTensorK=new Vector3d(localInertiaTensor[2][0],localInertiaTensor[2][1],localInertiaTensor[2][2]);
+
+        //decomposition into principal components
         principialInertia[0]=rotateQuat(InertiaTensorI,principialRotation).length();
         principialInertia[1]=rotateQuat(InertiaTensorJ,principialRotation).length();
         principialInertia[2]=rotateQuat(InertiaTensorK,principialRotation).length();
@@ -291,9 +298,10 @@ public class PhysicsManager {
                 1/principialInertia[0],
                 1/principialInertia[1],
                 1/principialInertia[2]);
-        //principialRotation=Quaternion.ONE.copy();
+
+        //global tourqe to local reference frame
         localTourqe=localTourqe.add(rotateQuatReverse(globalTourqe,orientation));
-        //localTourqe = new Vector3d(0,1,0).scale(localTourqe.y);
+
         angularMomentum=angularMomentum.add(localTourqe.scale(dt));
         double momentumMag = angularMomentum.length();
         angularVelocity = rotateQuat(angularMomentum,principialRotation).multiply(inversePrincipialInertia);
@@ -303,18 +311,18 @@ public class PhysicsManager {
                 (principialInertia[0] - principialInertia[2]) * angularVelocity.z * angularVelocity.x,
                 (principialInertia[1] - principialInertia[0]) * angularVelocity.x * angularVelocity.y
         );
-        angularAcceleration=Vector3d.ZERO;
 
-        //angularVelocity = angularVelocity.add(angularAcceleration.multiply(inversePrincipialInertia.scale(dt)));
+        angularVelocity = angularVelocity.add(angularAcceleration.multiply(inversePrincipialInertia.scale(dt)));
 
         angularVelocity = rotateQuatReverse(angularVelocity,principialRotation);
 
-        //angularMomentum = angularMomentum.add(rotateQuatReverse(angularAcceleration.scale(dt),principialRotation));
+        angularMomentum = angularMomentum.add(rotateQuatReverse(angularAcceleration.scale(dt),principialRotation));
 
         if (angularMomentum.lengthSqr() > 0)//reset the length to maintain conservation of momentum
         {
-            angularMomentum.normalize();
-            angularMomentum.scale(momentumMag);
+            angularMomentum=angularMomentum.normalize();
+            angularMomentum=angularMomentum.scale(momentumMag);
+
         }
         angularMomentum=angularMomentum.scale(0.998);
         Vector3d v = angularVelocity.scale(dt*0.5f);
@@ -328,7 +336,15 @@ public class PhysicsManager {
     }
     void updateSpectralDecomposition()
     {
-        double[][] attemptedDecomposition = new double[3][3];
+        // attempts to perform spectral decomposition on the local inertia tensor = A
+        // this is done by finding a rotation Q such that D = (Q^-1)AQ is a diagonal matrix
+        // the way this is done is by starting with some attempted matrix M = (Q^-1)AQ using the current rotation Q
+        // and then trying to find a small pertubation rotation dQ that causes the resulting matrix (dQ^-1)MdQ
+        // to become more diagonal than what M currently is
+        // dQ is defined using a small cross product dQ(v) = v + cross(v,k)
+
+        //scaleDown parameter is used to scale down the matrix to have approximatly unit length column vectors
+        //somehow this makes the algorithm far more stable
         double scaleDown = 0;
         for (int i =0;i<3;i++)
         {
@@ -338,6 +354,13 @@ public class PhysicsManager {
             }
         }
         scaleDown=Math.sqrt(scaleDown);
+
+        // attemptedDecomposition is the attempted result matrix using the current rotation
+        // attemptedDecomposition = rotationInverse * localInertiaTensor * rotation
+        // the goal is to get this to be a diagonal matrix, as then the principialRotation (if expressed as a matrix)
+        // will have the principial axies as column vectors,
+        // and the resulting diagonal matrix will contain the moments of inertia
+        double[][] attemptedDecomposition = new double[3][3];
         for (int i =0;i<3;i++)
         {
             Vector3d v=setVectorFromIndex(i,1);
@@ -350,6 +373,9 @@ public class PhysicsManager {
             attemptedDecomposition[i][1]=v.y/scaleDown;
             attemptedDecomposition[i][2]=v.z/scaleDown;
         }
+        // numerically that goal corresponds to this cost value being as low as possible
+        // as this cost is the sum of the squares of the non-diagonal elements
+        // so a diagonal matrix will have zero cost
         double cost = 0;
         for (int i =0;i<3;i++)
         {
@@ -359,7 +385,6 @@ public class PhysicsManager {
                     cost+=attemptedDecomposition[i][j]*attemptedDecomposition[i][j];
             }
         }
-
         Vector3d gradientVector=new Vector3d(0,0,0);
         for (int i =0;i<3;i++) {
             for (int j = 0; j < 3; j++) {

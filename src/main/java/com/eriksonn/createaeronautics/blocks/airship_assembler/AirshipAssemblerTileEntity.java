@@ -3,6 +3,7 @@ import com.eriksonn.createaeronautics.contraptions.AirshipContraptionEntity;
 import com.eriksonn.createaeronautics.contraptions.AirshipContraption;
 import com.eriksonn.createaeronautics.contraptions.AirshipManager;
 import com.eriksonn.createaeronautics.dimension.AirshipDimensionManager;
+import com.eriksonn.createaeronautics.dimension.ClientDimensionManager;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.contraptions.components.structureMovement.*;
@@ -61,6 +62,8 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
             //AirshipDimensionPlot plot = manager.allocatePlot(targetSize);
             ServerWorld airshipWorld = manager.getWorld();
 
+            //make sure that the client world exists
+            ClientDimensionManager.getWorld();
 
             //contraption.storageWorld=airshipWorld;
 

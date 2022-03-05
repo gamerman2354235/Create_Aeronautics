@@ -17,7 +17,9 @@
     "RotationPropagatorMixin",
     "WorldEventMixin",
     "WorldRendererMixin",
-    "ContraptionColliderMixin"
+    "ContraptionColliderMixin",
+    "WorldAccessorMixin",
+    "ClientWorldAccessorMixin"
   ],
   "injectors": {
     "defaultRequire": 1

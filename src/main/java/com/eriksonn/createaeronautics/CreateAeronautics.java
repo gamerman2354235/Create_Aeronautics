@@ -3,6 +3,7 @@ package com.eriksonn.createaeronautics;
 
 import com.eriksonn.createaeronautics.groups.CAItemGroups;
 import com.eriksonn.createaeronautics.index.*;
+import com.eriksonn.createaeronautics.network.MyNetwork;
 import com.simibubi.create.repack.registrate.util.NonNullLazyValue;
 import net.minecraft.particles.ParticleType;
 import net.minecraft.util.ResourceLocation;
@@ -36,6 +37,8 @@ public class CreateAeronautics
         CATileEntities.register();
         CAEntityTypes.register();
         CABlockPartials.clientInit();
+
+        MyNetwork.init();
 
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
