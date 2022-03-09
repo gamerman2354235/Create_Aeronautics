@@ -1,6 +1,5 @@
 package com.eriksonn.createaeronautics;
 
-import com.eriksonn.createaeronautics.dimension.ClientDimensionManager;
 import com.eriksonn.createaeronautics.index.CAParticleTypes;
 import net.minecraftforge.eventbus.api.IEventBus;
 

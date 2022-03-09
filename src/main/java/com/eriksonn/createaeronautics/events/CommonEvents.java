@@ -18,12 +18,5 @@ public class CommonEvents {
     public static void onEntityAdded(EntityJoinWorldEvent event) {
         Entity entity = event.getEntity();
         World world = event.getWorld();
-        if(entity instanceof ControlledContraptionEntity && world.dimension() == AirshipDimensionManager.WORLD_ID && !world.isClientSide) {
-            ControlledContraptionEntity contraptionEntity=(ControlledContraptionEntity)entity;
-            int PlotId = AirshipManager.getIdFromPlotPos(contraptionEntity.blockPosition());
-            AirshipContraptionEntity airshipEntity = AirshipManager.INSTANCE.AllAirships.get(PlotId);
-            if(airshipEntity!=null)
-                ContraptionHandler.addSpawnedContraptionsToCollisionList(entity, airshipEntity.level);
-        }
     }
 }
