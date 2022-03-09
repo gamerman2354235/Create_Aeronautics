@@ -16,6 +16,7 @@
     "PotatoProjectileEntityMixin",
     "RotationPropagatorMixin",
     "WorldEventMixin",
+    "ServerWorldEventMixin",
     "WorldRendererMixin",
     "ContraptionColliderMixin",
     "WorldAccessorMixin",

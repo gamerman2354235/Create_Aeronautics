@@ -1,6 +1,10 @@
 package com.eriksonn.createaeronautics.network;
 
 import com.eriksonn.createaeronautics.CreateAeronautics;
+import com.eriksonn.createaeronautics.network.packet.AirshipAddSubcontraptionPacket;
+import com.eriksonn.createaeronautics.network.packet.AirshipContraptionBlockUpdatePacket;
+import com.eriksonn.createaeronautics.network.packet.AirshipDestroySubcontraptionPacket;
+import com.eriksonn.createaeronautics.network.packet.AirshipUpdateSubcontraptionPacket;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.IPacket;
 import net.minecraft.network.PacketDirection;
@@ -13,6 +17,8 @@ import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 
+import java.util.Optional;
+
 public class NetworkMain {
     private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -22,15 +28,13 @@ public class NetworkMain {
             PROTOCOL_VERSION::equals
     );
 
+    public static int packetID = 0;
+
     public static void init() {
-        CHANNEL.registerMessage(0, StcRedirected.class, StcRedirected::encode, StcRedirected::new, StcRedirected::handle);
-        //channel.registerMessage(1, StcDimensionConfirm.class, StcDimensionConfirm::encode, StcDimensionConfirm::new, StcDimensionConfirm::handle);
-        //channel.registerMessage(2, StcDimensionSync.class, StcDimensionSync::encode, StcDimensionSync::new, StcDimensionSync::handle);
-        //channel.registerMessage(3, CtsTeleport.class, CtsTeleport::encode, CtsTeleport::new, CtsTeleport::handle);
-        //channel.registerMessage(4, StcUpdateGlobalPortals.class, StcUpdateGlobalPortals::encode, StcUpdateGlobalPortals::new, StcUpdateGlobalPortals::handle);
-        //channel.registerMessage(6, StcSpawnEntity.class, StcSpawnEntity::encode, StcSpawnEntity::new, StcSpawnEntity::handle);
-        //channel.registerMessage(7, CtsPlayerAction.class, CtsPlayerAction::encode, CtsPlayerAction::new, CtsPlayerAction::handle);
-        //channel.registerMessage(8, CtsRightClick.class, CtsRightClick::encode, CtsRightClick::new, CtsRightClick::handle);
+        CHANNEL.registerMessage(packetID++, AirshipContraptionBlockUpdatePacket.class, AirshipContraptionBlockUpdatePacket::encode, AirshipContraptionBlockUpdatePacket::new, AirshipContraptionBlockUpdatePacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(packetID++, AirshipAddSubcontraptionPacket.class, AirshipAddSubcontraptionPacket::encode, AirshipAddSubcontraptionPacket::new, AirshipAddSubcontraptionPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(packetID++, AirshipUpdateSubcontraptionPacket.class, AirshipUpdateSubcontraptionPacket::encode, AirshipUpdateSubcontraptionPacket::new, AirshipUpdateSubcontraptionPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(packetID++, AirshipDestroySubcontraptionPacket.class, AirshipDestroySubcontraptionPacket::encode, AirshipDestroySubcontraptionPacket::new, AirshipDestroySubcontraptionPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
     public static <T> void sendToServer(T t) {
@@ -43,16 +47,12 @@ public class NetworkMain {
         }), t);
     }
 
-    public static void sendRedirected(ServerPlayerEntity player, RegistryKey<World> dimension, IPacket t) {
-        sendToPlayer(player, new StcRedirected(dimension, t));
-    }
-
-    public static IPacket getRedirectedPacket(RegistryKey<World> dimension, IPacket t) {
-        return CHANNEL.toVanillaPacket(new StcRedirected(dimension, t), NetworkDirection.PLAY_TO_CLIENT);
-    }
-
-
-    public static IPacket createEmptyPacketByType(int messageType) {
-        return ProtocolType.PLAY.createPacket(PacketDirection.CLIENTBOUND, messageType);
-    }
+//    public static void handle(MyMessage msg, Supplier<NetworkEvent.Context> ctx) {
+//        ctx.get().enqueueWork(() -> {
+//            // Work that needs to be thread-safe (most work)
+//            ServerPlayerEntity sender = ctx.get().getSender(); // the client that sent this packet
+//            // Do stuff
+//        });
+//        ctx.get().setPacketHandled(true);
+//    }
 }

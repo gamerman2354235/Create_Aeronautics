@@ -33,7 +33,7 @@ public class ContraptionRenderMixin {
             if(c instanceof AirshipContraption) {
                 int plotId=((AirshipContraptionEntity)c.entity).plotId;
                 BlockPos anchorPos = AirshipManager.getPlotPosFromId(plotId);
-                ms.translate(-anchorPos.getX(),-anchorPos.getY(),-anchorPos.getZ());
+                ms.translate(0, -anchorPos.getY(), 0);
             }
             //if(world.dimension() == AirshipDimensionManager.WORLD_ID)
             //{

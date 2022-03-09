@@ -1,17 +1,20 @@
 package com.eriksonn.createaeronautics;
 
 
+import com.eriksonn.createaeronautics.events.RenderEvents;
 import com.eriksonn.createaeronautics.groups.CAItemGroups;
 import com.eriksonn.createaeronautics.index.*;
-import com.eriksonn.createaeronautics.network.MyNetwork;
+import com.eriksonn.createaeronautics.network.NetworkMain;
 import com.simibubi.create.repack.registrate.util.NonNullLazyValue;
 import net.minecraft.particles.ParticleType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,13 +35,13 @@ public class CreateAeronautics
     public CreateAeronautics() {
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(RenderEvents.class);
 
         CABlocks.register();
         CATileEntities.register();
         CAEntityTypes.register();
         CABlockPartials.clientInit();
-
-        MyNetwork.init();
+        NetworkMain.init();
 
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
@@ -48,6 +51,13 @@ public class CreateAeronautics
         modEventBus.addGenericListener(ParticleType.class, CAParticleTypes::register);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> CreateAeronauticsClient.onCtorClient(modEventBus, MinecraftForge.EVENT_BUS));
     }
+
+    // FMLCommonSetupEvent
+    @SubscribeEvent
+    public void onCommonSetup(final FMLCommonSetupEvent event) {
+    }
+
+
     public static ResourceLocation asResource(String path) {
         return new ResourceLocation(MODID, path);
     }

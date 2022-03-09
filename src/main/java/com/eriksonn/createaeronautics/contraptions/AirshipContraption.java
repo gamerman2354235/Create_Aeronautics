@@ -1,9 +1,12 @@
 package com.eriksonn.createaeronautics.contraptions;
 
+import com.eriksonn.createaeronautics.dimension.AirshipDimensionManager;
 import com.eriksonn.createaeronautics.index.CAEntityTypes;
 import com.simibubi.create.content.contraptions.components.structureMovement.*;
 import com.simibubi.create.foundation.utility.UniqueLinkedList;
 import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -36,20 +39,17 @@ public class AirshipContraption extends Contraption {
 
         }
     }
-    public boolean searchMovedStructure(World world, BlockPos pos, @Nullable Direction forcedDirection)
+    public boolean i(World world, BlockPos pos, @Nullable Direction forcedDirection)
             throws AssemblyException {
         Queue<BlockPos> frontier = new UniqueLinkedList<>();
         Set<BlockPos> visited = new HashSet<>();
         anchor = pos;
         if (bounds == null)
             bounds = new AxisAlignedBB(BlockPos.ZERO);
-        //visited.add(pos);
-        //pos.offset(0,-1,0);
+
         frontier.add(pos);
         moveBlock(world, forcedDirection, frontier, visited);
-        pos=pos.offset(0,-1,0);
-        //frontier.add(pos);
-
+        pos = pos.offset(0,-1,0);
 
 
         if (!BlockMovementChecks.isBrittle(world.getBlockState(pos)))
@@ -64,11 +64,18 @@ public class AirshipContraption extends Contraption {
         }
         throw AssemblyException.structureTooLarge();
     }
-    public void setBlockState(BlockPos localPos, BlockState state)
-    {
-        Template.BlockInfo info=getBlocks().get(localPos);
-        if(info!=null)
-            blocks.put(localPos, new Template.BlockInfo(info.pos, state, info.nbt));
+    public void setBlockState(BlockPos localPos, BlockState state, TileEntity be) {
+        CompoundNBT nbt = null;
+        if (be != null) {
+            nbt = be.serializeNBT();
+
+            nbt.remove("x");
+            nbt.remove("y");
+            nbt.remove("z");
+        }
+
+        Template.BlockInfo info = blocks.get(localPos);
+        blocks.put(localPos, new Template.BlockInfo(localPos, state, be == null ? null : nbt));
     }
 
     protected boolean isAnchoringBlockAt(BlockPos pos) {

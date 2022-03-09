@@ -4,6 +4,7 @@ import com.eriksonn.createaeronautics.contraptions.AirshipContraption;
 import com.eriksonn.createaeronautics.contraptions.AirshipContraptionEntity;
 import com.eriksonn.createaeronautics.contraptions.AirshipManager;
 import com.eriksonn.createaeronautics.dimension.AirshipDimensionManager;
+import com.eriksonn.createaeronautics.world.FakeAirshipClientWorld;
 import com.jozufozu.flywheel.event.BeginFrameEvent;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.simibubi.create.content.contraptions.components.structureMovement.*;
@@ -76,7 +77,7 @@ public class ContraptionRenderInfoMixin {
     //}
     @Inject(locals = LocalCapture.CAPTURE_FAILHARD,remap=false,method = "beginFrame", at = @At("TAIL"))
     public void afterBeginFrame(BeginFrameEvent event,CallbackInfo ci,AbstractContraptionEntity entity) {
-        if (entity instanceof ControlledContraptionEntity && entity.level.dimension() == AirshipDimensionManager.WORLD_ID) {
+        if (entity instanceof ControlledContraptionEntity && entity.level instanceof FakeAirshipClientWorld) {
             int plotId = AirshipManager.getIdFromPlotPos(entity.blockPosition());
             AirshipContraptionEntity airshipEntity = AirshipManager.INSTANCE.AllAirships.get(plotId);
             if (airshipEntity != null) {
