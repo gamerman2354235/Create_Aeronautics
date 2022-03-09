@@ -37,7 +37,9 @@ public class ContraptionMatriciesMixin {
     @Inject(locals = LocalCapture.CAPTURE_FAILHARD,remap=false,method = "setup", at = @At(remap=false,value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/AbstractContraptionEntity;doLocalTransforms(F[Lcom/mojang/blaze3d/matrix/MatrixStack;)V"))
     private void onSetupTransforms(MatrixStack viewProjection, AbstractContraptionEntity entity, CallbackInfo ci)
     {
+
         setupTransforms(entity, model);
+
     }
     //@Inject(locals = LocalCapture.CAPTURE_FAILHARD,remap=false,method = "setup", at = @At("HEAD"))
     //public void onSetupStart(MatrixStack viewProjection, AbstractContraptionEntity entity, CallbackInfo ci)

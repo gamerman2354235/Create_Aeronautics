@@ -7,5 +7,6 @@
   "death.attack.createaeronautics.stationary_potato_cannon": "%1$s was shot by a Stationary Potato Cannon",
   "death.attack.createaeronautics.stationary_potato_cannon.item": "%1$s was shot by a Stationary Potato Cannon using %2$s",
   "entity.createaeronautics.airship_contraption": "Airship Contraption",
+  "item.createaeronautics.endstone_powder": "Endstone Powder",
   "itemGroup.main_group": "Create: Aeronautics"
 }

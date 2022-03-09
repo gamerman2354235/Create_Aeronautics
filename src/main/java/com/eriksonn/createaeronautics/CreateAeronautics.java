@@ -38,6 +38,7 @@ public class CreateAeronautics
         MinecraftForge.EVENT_BUS.register(RenderEvents.class);
 
         CABlocks.register();
+        CAItems.register();
         CATileEntities.register();
         CAEntityTypes.register();
         CABlockPartials.clientInit();

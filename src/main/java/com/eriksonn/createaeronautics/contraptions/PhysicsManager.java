@@ -98,6 +98,7 @@ public class PhysicsManager {
         updateWings();
         updateInertia();
         updateTileEntityInteractions();
+        centerOfMass=Vector3d.ZERO;
         totalAccumulatedBuoyancy =0;
 
         totalAccumulatedBuoyancy += levititeBuoyancyController.apply(orientation,entity.position());
@@ -121,7 +122,9 @@ public class PhysicsManager {
 
 
         CurrentAxisAngle+=0.01f;
+
 //        orientation=new Quaternion(s*CurrentAxis.x(),s*CurrentAxis.y(),s*CurrentAxis.z(),c);
+
 
         entity.quat=orientation.copy();
         entity.velocity=globalVelocity.scale(dt);
@@ -345,7 +348,7 @@ public class PhysicsManager {
             angularMomentum=angularMomentum.scale(momentumMag);
 
         }
-        angularMomentum=angularMomentum.scale(0.998);
+        angularMomentum=angularMomentum.scale(0.995);
         Vector3d v = angularVelocity.scale(dt*0.5f);
         Quaternion q = new Quaternion((float)v.x,(float)v.y,(float)v.z, 1.0f);
         q.mul(orientation);

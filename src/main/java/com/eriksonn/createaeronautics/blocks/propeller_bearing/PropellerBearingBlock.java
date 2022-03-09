@@ -53,11 +53,14 @@ public class PropellerBearingBlock extends BearingBlock implements ITE<Propeller
             return ActionResultType.FAIL;
         if (player.getItemInHand(handIn)
                 .isEmpty()) {
-            if (worldIn.isClientSide)
+            if (worldIn.isClientSide) {
+                withTileEntityDo(worldIn, pos, te -> {if (te.isRunning()) te.startDisassemblySlowdown();});
                 return ActionResultType.SUCCESS;
+            }
             withTileEntityDo(worldIn, pos, te -> {
                 if (te.isRunning()) {
-                    te.disassemble();
+                    //te.disassemble();
+                    te.startDisassemblySlowdown();
                     return;
                 }
                 ((MechanicalBearingTileEntityAccessor) te).setAssembleNextTick(true);
