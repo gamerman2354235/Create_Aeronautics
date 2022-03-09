@@ -1,5 +1,6 @@
 package com.eriksonn.createaeronautics.contraptions;
 
+
 import com.eriksonn.createaeronautics.CreateAeronautics;
 import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingBlock;
 import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingTileEntity;
@@ -33,14 +34,14 @@ import java.util.*;
 public class PhysicsManager {
     AirshipContraptionEntity entity;
     AirshipContraption contraption;
-    private Quaternion orientation;
+    Quaternion orientation;
     Vector3d momentum=Vector3d.ZERO;
     Vector3d centerOfMass=Vector3d.ZERO;
-    private Vector3d angularMomentum=Vector3d.ZERO;
+    Vector3d angularMomentum=Vector3d.ZERO;
     Vector3d angularVelocity=Vector3d.ZERO;
     double[][] localInertiaTensor=new double[3][3];
-    Quaternion principialRotation;
-    double[] principialInertia=new double[3];
+    Quaternion principalRotation;
+    double[] principalInertia =new double[3];
     double mass;
     Vector3d localForce =Vector3d.ZERO;
     Vector3d globalForce =Vector3d.ZERO;
@@ -71,7 +72,8 @@ public class PhysicsManager {
         LeviCivitaTensor=new double[3][3][3];
         LeviCivitaTensor[0][1][2]=LeviCivitaTensor[2][0][1]=LeviCivitaTensor[1][2][0]=1;
         LeviCivitaTensor[2][1][0]=LeviCivitaTensor[0][2][1]=LeviCivitaTensor[1][0][2]=-1;
-        principialRotation=Quaternion.ONE.copy();
+        principalRotation =Quaternion.ONE.copy();
+        //angularMomentum=new Vector3d(0,100,2);
         //principialRotation=new Quaternion(1,2,3,4);
         //principialRotation.normalize();
     }
@@ -101,6 +103,7 @@ public class PhysicsManager {
         updateWings();
         updateInertia();
         updateTileEntityInteractions();
+        centerOfMass=Vector3d.ZERO;
         totalAccumulatedBuoyancy =0;
 
         totalAccumulatedBuoyancy += levititeBuoyancyController.apply(orientation,entity.position());
@@ -108,12 +111,12 @@ public class PhysicsManager {
 
         globalForce=globalForce.add(0,-totalAccumulatedBuoyancy,0);
 
-        momentum = momentum.add(rotateQuat(localForce,orientation)).add(globalForce);
+        momentum = momentum.add(rotateQuat(localForce.scale(dt),orientation)).add(globalForce.scale(dt));
         globalForce = Vector3d.ZERO;
         localForce = Vector3d.ZERO;
 
         momentum=momentum.scale(0.995);
-        globalVelocity=momentum.scale(dt/mass);
+        globalVelocity=momentum.scale(1.0/mass);
         localVelocity = rotateQuatReverse(globalVelocity,orientation);
 
         float c = (float)Math.cos(CurrentAxisAngle);
@@ -124,7 +127,9 @@ public class PhysicsManager {
 
 
         CurrentAxisAngle+=0.01f;
-        //orientation=new Quaternion(s*CurrentAxis.x(),s*CurrentAxis.y(),s*CurrentAxis.z(),c);
+
+//        orientation=new Quaternion(s*CurrentAxis.x(),s*CurrentAxis.y(),s*CurrentAxis.z(),c);
+
 
         entity.quat=orientation.copy();
         entity.velocity=globalVelocity.scale(dt);
@@ -233,6 +238,7 @@ public class PhysicsManager {
     }
     void updateCenterOfMass()
     {
+        //Center of mass is the weighted average of the block positions, weighted by their mass
         mass=0;
         centerOfMass=Vector3d.ZERO;
         for (Map.Entry<BlockPos, Template.BlockInfo> entry : contraption.getBlocks().entrySet()) {
@@ -243,6 +249,28 @@ public class PhysicsManager {
                 mass+=blockMass;
             }
         }
+        // for every subcontraption, add its center of mass
+        for (Map.Entry<UUID, ControlledContraptionEntity> contraptionEntry : entity.subContraptions.entrySet()) {
+            for (Map.Entry<BlockPos, Template.BlockInfo> entry : contraptionEntry.getValue().getContraption().getBlocks().entrySet()) {
+                if (!entry.getValue().state.isAir()) {
+                    double blockMass=getBlockMass(entry.getValue());
+                    Vector3d pos=new Vector3d(entry.getKey().getX(),entry.getKey().getY(),entry.getKey().getZ());
+
+                    Vector3d anchorVec = contraptionEntry.getValue().getAnchorVec();
+                    BlockPos plotPos = AirshipManager.getPlotPosFromId(entity.plotId);
+                    if(entity.level.isClientSide) {
+                        anchorVec = anchorVec.subtract(0, plotPos.getY(), 0);
+                    } else {
+                        anchorVec = anchorVec.subtract(plotPos.getX(), plotPos.getY(), plotPos.getZ());
+                    }
+
+                    pos=anchorVec.add(contraptionEntry.getValue().applyRotation(pos, 1.0f));
+                    centerOfMass=centerOfMass.add(pos.scale(blockMass));
+                    mass+=blockMass;
+                }
+            }
+        }
+
         centerOfMass=centerOfMass.scale(1.0/mass);
         entity.centerOfMassOffset=centerOfMass;
     }
@@ -278,44 +306,50 @@ public class PhysicsManager {
     }
     void updateRotation()
     {
-
+        //Find the eigenvector decomposition of the inertia tensor
+        //in terms of principal components and a quaternion rotation
         updateSpectralDecomposition();
+
+        //column vectors of the original inertia tensor
         Vector3d InertiaTensorI=new Vector3d(localInertiaTensor[0][0],localInertiaTensor[0][1],localInertiaTensor[0][2]);
         Vector3d InertiaTensorJ=new Vector3d(localInertiaTensor[1][0],localInertiaTensor[1][1],localInertiaTensor[1][2]);
         Vector3d InertiaTensorK=new Vector3d(localInertiaTensor[2][0],localInertiaTensor[2][1],localInertiaTensor[2][2]);
-        principialInertia[0]=rotateQuat(InertiaTensorI,principialRotation).length();
-        principialInertia[1]=rotateQuat(InertiaTensorJ,principialRotation).length();
-        principialInertia[2]=rotateQuat(InertiaTensorK,principialRotation).length();
+
+        //decomposition into principal components
+        principalInertia[0]=rotateQuat(InertiaTensorI, principalRotation).length();
+        principalInertia[1]=rotateQuat(InertiaTensorJ, principalRotation).length();
+        principalInertia[2]=rotateQuat(InertiaTensorK, principalRotation).length();
         Vector3d inversePrincipialInertia = new Vector3d(
-                1/principialInertia[0],
-                1/principialInertia[1],
-                1/principialInertia[2]);
-        //principialRotation=Quaternion.ONE.copy();
+                1/ principalInertia[0],
+                1/ principalInertia[1],
+                1/ principalInertia[2]);
+
+        //global tourqe to local reference frame
         localTourqe=localTourqe.add(rotateQuatReverse(globalTourqe,orientation));
-        //localTourqe = new Vector3d(0,1,0).scale(localTourqe.y);
+
         angularMomentum=angularMomentum.add(localTourqe.scale(dt));
         double momentumMag = angularMomentum.length();
-        angularVelocity = rotateQuat(angularMomentum,principialRotation).multiply(inversePrincipialInertia);
+        angularVelocity = rotateQuat(angularMomentum, principalRotation).multiply(inversePrincipialInertia);
 
         Vector3d angularAcceleration = new Vector3d(
-                (principialInertia[2] - principialInertia[1]) * angularVelocity.y * angularVelocity.z,
-                (principialInertia[0] - principialInertia[2]) * angularVelocity.z * angularVelocity.x,
-                (principialInertia[1] - principialInertia[0]) * angularVelocity.x * angularVelocity.y
+                (principalInertia[2] - principalInertia[1]) * angularVelocity.y * angularVelocity.z,
+                (principalInertia[0] - principalInertia[2]) * angularVelocity.z * angularVelocity.x,
+                (principalInertia[1] - principalInertia[0]) * angularVelocity.x * angularVelocity.y
         );
-        angularAcceleration=Vector3d.ZERO;
 
-        //angularVelocity = angularVelocity.add(angularAcceleration.multiply(inversePrincipialInertia.scale(dt)));
+        angularVelocity = angularVelocity.add(angularAcceleration.multiply(inversePrincipialInertia.scale(dt)));
 
-        angularVelocity = rotateQuatReverse(angularVelocity,principialRotation);
+        angularVelocity = rotateQuatReverse(angularVelocity, principalRotation);
 
-        //angularMomentum = angularMomentum.add(rotateQuatReverse(angularAcceleration.scale(dt),principialRotation));
+        angularMomentum = angularMomentum.add(rotateQuatReverse(angularAcceleration.scale(dt), principalRotation));
 
         if (angularMomentum.lengthSqr() > 0)//reset the length to maintain conservation of momentum
         {
-            angularMomentum.normalize();
-            angularMomentum.scale(momentumMag);
+            angularMomentum=angularMomentum.normalize();
+            angularMomentum=angularMomentum.scale(momentumMag);
+
         }
-        angularMomentum=angularMomentum.scale(0.998);
+        angularMomentum=angularMomentum.scale(0.995);
         Vector3d v = angularVelocity.scale(dt*0.5f);
         Quaternion q = new Quaternion((float)v.x,(float)v.y,(float)v.z, 1.0f);
         q.mul(orientation);
@@ -327,7 +361,15 @@ public class PhysicsManager {
     }
     void updateSpectralDecomposition()
     {
-        double[][] attemptedDecomposition = new double[3][3];
+        // attempts to perform spectral decomposition on the local inertia tensor = A
+        // this is done by finding a rotation Q such that D = (Q^-1)AQ is a diagonal matrix
+        // the way this is done is by starting with some attempted matrix M = (Q^-1)AQ using the current rotation Q
+        // and then trying to find a small pertubation rotation dQ that causes the resulting matrix (dQ^-1)MdQ
+        // to become more diagonal than what M currently is
+        // dQ is defined using a small cross product dQ(v) = v + cross(v,k)
+
+        //scaleDown parameter is used to scale down the matrix to have approximatly unit length column vectors
+        //somehow this makes the algorithm far more stable
         double scaleDown = 0;
         for (int i =0;i<3;i++)
         {
@@ -337,18 +379,28 @@ public class PhysicsManager {
             }
         }
         scaleDown=Math.sqrt(scaleDown);
+
+        // attemptedDecomposition is the attempted result matrix using the current rotation
+        // attemptedDecomposition = rotationInverse * localInertiaTensor * rotation
+        // the goal is to get this to be a diagonal matrix, as then the principialRotation (if expressed as a matrix)
+        // will have the principial axies as column vectors,
+        // and the resulting diagonal matrix will contain the moments of inertia
+        double[][] attemptedDecomposition = new double[3][3];
         for (int i =0;i<3;i++)
         {
             Vector3d v=setVectorFromIndex(i,1);
 
-            v=rotateQuat(v,principialRotation);
+            v=rotateQuat(v, principalRotation);
             v=multiplyMatrixArray(localInertiaTensor,v);
-            v=rotateQuatReverse(v,principialRotation);
+            v=rotateQuatReverse(v, principalRotation);
 
             attemptedDecomposition[i][0]=v.x/scaleDown;
             attemptedDecomposition[i][1]=v.y/scaleDown;
             attemptedDecomposition[i][2]=v.z/scaleDown;
         }
+        // numerically that goal corresponds to this cost value being as low as possible
+        // as this cost is the sum of the squares of the non-diagonal elements
+        // so a diagonal matrix will have zero cost
         double cost = 0;
         for (int i =0;i<3;i++)
         {
@@ -358,7 +410,6 @@ public class PhysicsManager {
                     cost+=attemptedDecomposition[i][j]*attemptedDecomposition[i][j];
             }
         }
-
         Vector3d gradientVector=new Vector3d(0,0,0);
         for (int i =0;i<3;i++) {
             for (int j = 0; j < 3; j++) {
@@ -388,8 +439,8 @@ public class PhysicsManager {
 
         //System.out.println("Cost: "+cost);
         Quaternion q=new Quaternion((float)change.x,(float)change.y,(float)change.z,1.0f);
-        principialRotation.mul(q);
-        principialRotation.normalize();
+        principalRotation.mul(q);
+        principalRotation.normalize();
     }
     Vector3d setVectorFromIndex(int i,double value)
     {
@@ -446,16 +497,16 @@ public class PhysicsManager {
             Vector3d force = normal.scale(-0.8f*normal.dot(vel));
             addForce(force,pos);
         }
-        for (Map.Entry<BlockPos, ControlledContraptionEntity> contraptionEntityEntry : entity.subContraptions.entrySet())
+        for (Map.Entry<UUID, ControlledContraptionEntity> contraptionEntityEntry : entity.subContraptions.entrySet())
         {
-            //propellers are handled separatly
-            if(!(AirshipDimensionManager.INSTANCE.getWorld().getBlockState(contraptionEntityEntry.getKey()).getBlock() instanceof PropellerBearingBlock))
+            // TODO: make propellers not provide lift
+            if(contraptionEntityEntry.getValue() != null)
             {
-                Contraption subContraption =contraptionEntityEntry.getValue().getContraption();
+                Contraption subContraption = contraptionEntityEntry.getValue().getContraption();
 
                 for (Map.Entry<BlockPos, Template.BlockInfo> blockStateEntry : subContraption.getBlocks().entrySet())
                 {
-                    if(blockStateEntry.getValue().state.getBlock()  instanceof SailBlock) {
+                    if(blockStateEntry.getValue().state.getBlock() instanceof SailBlock) {
 
                         Vector3d pos = contraptionEntityEntry.getValue().applyRotation(VecHelper.getCenterOf(blockStateEntry.getKey()),0);
                         pos.subtract(centerOfMass);
@@ -516,7 +567,7 @@ public class PhysicsManager {
     {
 
         Vector3d direction=getFacingVector(te.getBlockState());
-        float magnitude = 0.1f*te.getSpeed();
+        float magnitude = 0.5f*te.getSpeed();
         return direction.scale(magnitude);
     }
 
@@ -595,6 +646,38 @@ public class PhysicsManager {
             return totalBuoyancy;
 
         }
+    }
+
+    /**
+     * Converts a vector to an array
+     */
+    public double[] vecToArray(Vector3d v)
+    {
+        return new double[]{v.x,v.y,v.z};
+    }
+
+    /**
+     * Converts an array to a vector
+     */
+    public Vector3d arrayToVec(double[] array)
+    {
+        return new Vector3d(array[0],array[1],array[2]);
+    }
+
+    /**
+     * Converts a quaternion to an array
+     */
+    public double[] quatToArray(Quaternion q)
+    {
+        return new double[]{q.i(),q.j(),q.k(),q.r()};
+    }
+
+    /**
+     * Converts an array to a quaternion
+     */
+    public Quaternion arrayToQuat(double[] array)
+    {
+        return new Quaternion((float)array[0], (float)array[1], (float)array[2], (float)array[3]);
     }
 
 }

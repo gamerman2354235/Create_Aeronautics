@@ -6,13 +6,9 @@ import com.eriksonn.createaeronautics.dimension.AirshipDimensionManager;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.contraptions.components.structureMovement.*;
-import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
-import net.minecraft.block.BlockState;
-import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
@@ -41,7 +37,6 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
     }
     public void assemble() {
         if (this.level.getBlockState(this.worldPosition).getBlock() instanceof AirshipAssemblerBlock) {
-            //Direction direction = (Direction)this.getBlockState().getValue(BlockStateProperties.FACING);
             AirshipContraption contraption = new AirshipContraption();
 
             try {
@@ -61,10 +56,6 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
             //AirshipDimensionPlot plot = manager.allocatePlot(targetSize);
             ServerWorld airshipWorld = manager.getWorld();
 
-
-            //contraption.storageWorld=airshipWorld;
-
-
             contraption.removeBlocksFromWorld(this.level, BlockPos.ZERO);
             this.movedContraption = AirshipContraptionEntity.create(this.level, contraption);
             BlockPos anchor = this.worldPosition;
@@ -77,17 +68,8 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
             this.level.addFreshEntity(this.movedContraption);
             AllSoundEvents.CONTRAPTION_ASSEMBLE.playOnServer(this.level, this.worldPosition);
             this.running = true;
-            //contraption.startMoving(this.level);
 
-            //airshipWorld.getChunk(this.worldPosition).setBlockState(this.worldPosition,this.getBlockState(),true);
-            //airshipWorld.getChunk(this.worldPosition).setBlockEntity(this.worldPosition,this);
-            //airshipWorld.setBlockAndUpdate(this.worldPosition, this.getBlockState());
-            //airshipWorld.setBlockEntity(this.worldPosition,this);
-            //this.level.removeBlock(this.worldPosition,false);
-            //this.level.removeBlockEntity(this.worldPosition);
             contraption.addBlocksToWorld(airshipWorld,new StructureTransform(AirshipManager.getPlotPosFromId(0), 0.0F, 0, 0.0F));
-            //this.level.removeBlockEntity(this.worldPosition);
-            //airshipWorld.addBlockEntity(this);
             this.sendData();
         }
     }

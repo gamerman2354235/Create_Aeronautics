@@ -1,5 +1,6 @@
 package com.eriksonn.createaeronautics.contraptions;
 
+import appeng.me.helpers.GenericInterestManager;
 import com.eriksonn.createaeronautics.CreateAeronautics;
 import com.eriksonn.createaeronautics.dimension.AirshipDimensionManager;
 import com.eriksonn.createaeronautics.mixins.ContraptionHolderAccessor;
@@ -44,6 +45,8 @@ public class AirshipManager {
 
     public Map<Integer,AirshipContraptionEntity> AllAirships;
     public Map<Integer, AirshipContraptionData> AirshipData;
+    public Map<Integer,AirshipContraptionEntity> AllClientAirships = new HashMap<>();
+
     class AirshipContraptionData
     {
         public boolean needsUpdating=false;
@@ -68,8 +71,6 @@ public class AirshipManager {
         AirshipData.putIfAbsent(index,new AirshipContraptionData());
     }
     public void tick() {
-
-        //System.out.println("airship tick");
         int plotToRemove=-1;
         for (Map.Entry<Integer,AirshipContraptionEntity> entry: AllAirships.entrySet())
         {
@@ -85,36 +86,6 @@ public class AirshipManager {
             if(entity.level.isLoaded(entity.blockPosition()))
             {
                 ForgeChunkManager.forceChunk(world, CreateAeronautics.MODID, pos, chunkPos.x, chunkPos.z, true, true);
-                for (Map.Entry<BlockPos, TileEntity> entry2 : entity.airshipContraption.presentTileEntities.entrySet())
-                {
-                    if(entry2.getValue() instanceof IControlContraption)
-                    {
-                        BlockPos tilePos = entry2.getKey();
-                        IControlContraption tile = (IControlContraption)entry2.getValue();
-                        ControlledContraptionEntity contraptionEntity = null;
-                        if(tile instanceof ContraptionHolderAccessor)
-                        {
-                            contraptionEntity = ((ContraptionHolderAccessor)tile).getMovedContraption();
-                        }
-                        if(contraptionEntity!=null && !entity.subContraptions.containsKey(entry2.getKey()))
-                        {
-                            entity.subContraptions.put(entry2.getKey(),contraptionEntity);
-                            data.subContraptions.put(entry2.getKey(),contraptionEntity);
-                            data.addedContraptions.add(contraptionEntity);
-                        }
-                        if(contraptionEntity!=null)
-                        {
-
-                            //contraptionEntity.setLevel(entity.level);
-                            ((AbstractContraptionEntityExtension)contraptionEntity).createAeronautics$setOriginalPosition(contraptionEntity.position());
-                            //Vector3d v = entity.position().add(tilePos.getX(),tilePos.getY(),tilePos.getZ());
-                            //contraptionEntity.setPos(v.x,v.y,v.z);
-                        }
-                    }
-                }
-
-                entity.subContraptions.entrySet().removeIf(iteratorEntry -> !iteratorEntry.getValue().isAlive());
-                data.subContraptions.entrySet().removeIf(iteratorEntry -> !iteratorEntry.getValue().isAlive());
             }else
             {
                 ForgeChunkManager.forceChunk(world, CreateAeronautics.MODID, pos, chunkPos.x, chunkPos.z, false, true);
@@ -126,110 +97,6 @@ public class AirshipManager {
                 removePlot(plotToRemove);
         }
 
-    }
-    public void performClientBlockStateChanges(AirshipContraptionEntity entity)
-    {
-        BlockPos anchorPos=getPlotPosFromId(entity.plotId);
-        AirshipContraptionData changes = AirshipData.get(entity.plotId);
-        if(changes!=null) {
-            if(changes.ClientBlockStateChanges!=null) {
-                Map<BlockPos, BlockState> currentMap=new HashMap<>();
-                for (Map.Entry<BlockPos, BlockState> entry : changes.ClientBlockStateChanges.entrySet())
-                {
-                    currentMap.put(entry.getKey(), entry.getValue());
-                }
-
-                for (Map.Entry<BlockPos, BlockState> entry : currentMap.entrySet()) {
-                    BlockPos localPos = entry.getKey();
-                    BlockState state = entry.getValue();
-
-                    if(entity.airshipContraption!=null) {
-                        entity.airshipContraption.setBlockState(localPos, state);
-                        if (entity.level.isClientSide)
-                            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> invalidate(entity.airshipContraption));
-                    }
-                }
-                changes.ClientBlockStateChanges.clear();
-                currentMap.clear();
-            }
-            if(entity.level.isClientSide) {
-                for (AbstractContraptionEntity controlledEntity : changes.addedContraptions) {
-                    ContraptionHandler.addSpawnedContraptionsToCollisionList(controlledEntity, entity.level);
-
-                }
-
-                changes.addedContraptions.clear();
-            }
-            entity.airshipContraption.presentTileEntities=changes.presentTileEntities;
-            entity.airshipContraption.specialRenderedTileEntities=changes.specialRenderedTileEntitiesChanges;
-            entity.airshipContraption.maybeInstancedTileEntities=changes.maybeInstancedTileEntitiesChanges;
-            entity.sails=changes.sails;
-            entity.subContraptions=changes.subContraptions;
-        }
-    }
-    public void blockStateChange(BlockPos pos, BlockState oldState, BlockState newState)
-    {
-
-        TileEntity te = AirshipDimensionManager.INSTANCE.getWorld().getBlockEntity(pos);
-        int id = getIdFromPlotPos(pos);
-        BlockPos anchorPos = getPlotPosFromId(id);
-
-        AirshipContraptionEntity entity = AllAirships.get(id);
-        AirshipContraptionData currentChange= AirshipData.get(id);
-        pos=pos.subtract(anchorPos);
-
-
-
-        if(currentChange!=null) {
-            if(newState.isAir())
-            {
-                TileEntity oldTe = currentChange.presentTileEntities.get(pos);
-                if(oldTe!=null)
-                {
-                    currentChange.presentTileEntities.remove(pos);
-                    currentChange.specialRenderedTileEntitiesChanges.remove(oldTe);
-                    currentChange.maybeInstancedTileEntitiesChanges.remove(oldTe);
-                }
-                entity.sails.remove(pos);
-                currentChange.sails.remove(pos);
-            }
-            if(te!=null)
-                AddTileData(currentChange,te,pos,newState);
-            currentChange.ClientBlockStateChanges.put(pos, newState);
-            entity.airshipContraption.setBlockState(pos, newState);
-            if(newState.getBlock() instanceof SailBlock)
-            {
-                entity.sails.put(pos,newState);
-                currentChange.sails.put(pos,newState);
-            }
-        }
-
-    }
-    public void AddTileData(AirshipContraptionData currentChange, TileEntity te, BlockPos pos, BlockState state)
-    {
-        Block block = state.getBlock();
-        MovementBehaviour movementBehaviour = AllMovementBehaviours.of(block);
-
-
-        if (te == null)
-            return;
-        //te.setLevelAndPosition(new Contraption.ContraptionTileWorld(world, te, info), te.getBlockPos());
-        //if (te instanceof KineticTileEntity)
-            //((KineticTileEntity) te).setSpeed(0);
-        te.getBlockState();
-        //te.setPosition(pos);
-
-        if (movementBehaviour == null || !movementBehaviour.hasSpecialInstancedRendering()) {
-            if(!currentChange.maybeInstancedTileEntitiesChanges.contains(te))
-            currentChange.maybeInstancedTileEntitiesChanges.add(te);
-        }
-
-        //if (movementBehaviour != null && !movementBehaviour.renderAsNormalTileEntity())
-            //return;
-
-        currentChange.presentTileEntities.put(pos, te);
-        if(!currentChange.specialRenderedTileEntitiesChanges.contains(te))
-            currentChange.specialRenderedTileEntitiesChanges.add(te);
     }
     public void removePlot(int id)
     {
@@ -310,8 +177,7 @@ public class AirshipManager {
     static final int PlotCenterHeight=64;
     public static BlockPos getPlotPosFromId(int id)
     {
-        return new BlockPos(10,10,10);
-        //return new BlockPos(PlotWidth/2,PlotCenterHeight,PlotWidth/2);
+        return new BlockPos(64,64,64);
     }
     public static int getIdFromPlotPos(BlockPos pos)
     {

@@ -1,5 +1,6 @@
 package com.eriksonn.createaeronautics.blocks.propeller_bearing;
 
+import com.eriksonn.createaeronautics.blocks.stationary_potato_cannon.StationaryPotatoCannonTileEntity;
 import com.eriksonn.createaeronautics.particle.PropellerAirParticleData;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.Create;
@@ -15,6 +16,7 @@ import com.simibubi.create.foundation.utility.Lang;
 import com.simibubi.create.foundation.utility.ServerSpeedProvider;
 import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.block.BlockState;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntityType;
@@ -35,6 +37,8 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
     protected float lastGeneratedSpeed;
     public List<BlockPos> sailPositions;
     float rotationSpeed=0;
+    float disassemblyTimer;
+    boolean disassemblySlowdown=false;
     public PropellerBearingTileEntity(TileEntityType<? extends MechanicalBearingTileEntity> type) {
         super(type);
         sailPositions=new ArrayList<>();
@@ -78,6 +82,7 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
     @Override
     public void write(CompoundNBT compound, boolean clientPacket) {
         compound.putFloat("LastGenerated", lastGeneratedSpeed);
+        compound.putFloat("RotationSpeed", rotationSpeed);
         super.write(compound, clientPacket);
     }
 
@@ -85,6 +90,7 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
     protected void fromTag(BlockState state, CompoundNBT compound, boolean clientPacket) {
         if (!wasMoved)
             lastGeneratedSpeed = compound.getFloat("LastGenerated");
+        rotationSpeed = compound.getFloat("RotationSpeed");
         super.fromTag(state, compound, clientPacket);
     }
 
@@ -103,16 +109,12 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
     @Override
     public void tick() {
         super.tick();
-        float nextSpeed = convertToAngular(getSpeed());
-        if (getSpeed() == 0)
-            nextSpeed = 0;
-        if(sailPositions.size()>0) {
-            float lerpAmount = 0.7f / sailPositions.size();
-            rotationSpeed = MathHelper.lerp(lerpAmount,rotationSpeed, nextSpeed);
-        }else
-        {
-            rotationSpeed=nextSpeed;
-        }
+
+        if(disassemblySlowdown)
+            updateSlowdownSpeed();
+        else
+            updateRotationSpeed();
+
         if (level.isClientSide) {
             //tickRotation();
             spawnParticles();
@@ -128,18 +130,67 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
             setBlockDirection(PropellerBearingBlock.Direction.PUSH);
         }
     }
+    void updateRotationSpeed()
+    {
+        float nextSpeed = convertToAngular(getSpeed());
+        if (getSpeed() == 0)
+            nextSpeed = 0;
+        if(sailPositions.size()>0) {
+            float lerpAmount = 0.7f / sailPositions.size();
+            rotationSpeed = MathHelper.lerp(lerpAmount,rotationSpeed, nextSpeed);
+        }else
+        {
+            rotationSpeed=nextSpeed;
+        }
+    }
+    void updateSlowdownSpeed()
+    {
+        disassemblyTimer--;
+        if(disassemblyTimer==0) {
+            if(!level.isClientSide)
+                disassemble();
+            disassemblySlowdown=false;
+            return;
+        }
+
+        // the angle it will end up at if slowing down at a constant rate
+        float currentStoppingPoint = (angle + rotationSpeed*disassemblyTimer*0.5f);
+
+        // the closest grid-aligned angle to currentStoppingPoint
+        float optimalStoppingPoint = 90f*Math.round(currentStoppingPoint/90f);
+
+        // Q is an inverse-lerp that solves this equation:
+        // optimalStoppingPoint = lerp(currentStoppingPoint,angle,Q)
+        float Q = (optimalStoppingPoint-currentStoppingPoint)/(angle-currentStoppingPoint);
+
+        rotationSpeed *= (1f - 3f*Q/disassemblyTimer)*(1f - 1f/disassemblyTimer);
+    }
     @Override
     public void attach(ControlledContraptionEntity contraption)
     {
-        rotationSpeed=0f;
+        //rotationSpeed=0f;
         super.attach(contraption);
         findSails();
     }
     @Override
     public void assemble()
     {
+        rotationSpeed=0;
         super.assemble();
         findSails();
+    }
+    @Override
+    public void disassemble()
+    {
+
+        super.disassemble();
+    }
+    public void startDisassemblySlowdown()
+    {
+        if(!disassemblySlowdown) {
+            disassemblySlowdown = true;
+            disassemblyTimer = 20;
+        }
     }
     void findSails()
     {
@@ -190,6 +241,7 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
             }
         }
     }
+
     public PropellerBearingBlock.Direction getDirectionFromBlock() {
         return PropellerBearingBlock.getDirectionof(getBlockState());
     }

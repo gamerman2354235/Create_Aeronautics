@@ -6,5 +6,6 @@ import net.minecraftforge.eventbus.api.IEventBus;
 public class CreateAeronauticsClient {
     public static void onCtorClient(IEventBus modEventBus, IEventBus forgeEventBus) {
         modEventBus.addListener(CAParticleTypes::registerFactories);
+
     }
 }
