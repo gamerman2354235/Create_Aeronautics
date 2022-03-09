@@ -47,7 +47,7 @@ public class ContraptionMatriciesMixin {
                 //Vector3d globalPos=airshipEntity.position().subtract(entity.position());
                 //globalPos=globalPos.add(airshipEntity.velocity.scale(AnimationTickHolder.getPartialTicks()));
                 model.translate(globalPos.x,globalPos.y,globalPos.z);
-                model.translate(0.5,0.5,0.5);
+                model.translate(5.5,0.5,0.5);
                 Quaternion Q = airshipEntity.quat.copy();
                 Q.conj();
                 model.mulPose(Q);

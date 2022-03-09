@@ -63,7 +63,7 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
             ServerWorld airshipWorld = manager.getWorld();
 
             //make sure that the client world exists
-            ClientDimensionManager.getWorld();
+            //ClientDimensionManager.getWorld();
 
             //contraption.storageWorld=airshipWorld;
 
