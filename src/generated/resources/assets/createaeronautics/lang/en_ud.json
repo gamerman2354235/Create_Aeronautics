@@ -7,5 +7,6 @@
   "death.attack.createaeronautics.stationary_potato_cannon": "uouu\u0250\u0186 o\u0287\u0250\u0287o\u0500 \u028E\u0279\u0250uo\u0131\u0287\u0250\u0287S \u0250 \u028Eq \u0287o\u0265s s\u0250\u028D %1$s",
   "death.attack.createaeronautics.stationary_potato_cannon.item": "%2$s bu\u0131sn uouu\u0250\u0186 o\u0287\u0250\u0287o\u0500 \u028E\u0279\u0250uo\u0131\u0287\u0250\u0287S \u0250 \u028Eq \u0287o\u0265s s\u0250\u028D %1$s",
   "entity.createaeronautics.airship_contraption": "uo\u0131\u0287d\u0250\u0279\u0287uo\u0186 d\u0131\u0265s\u0279\u0131\u2C6F",
+  "item.createaeronautics.endstone_powder": "\u0279\u01DDp\u028Do\u0500 \u01DDuo\u0287spu\u018E",
   "itemGroup.main_group": "s\u0254\u0131\u0287n\u0250uo\u0279\u01DD\u2C6F :\u01DD\u0287\u0250\u01DD\u0279\u0186"
 }

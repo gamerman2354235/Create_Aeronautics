@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:anvil",
+    "#forge:storage_blocks",
+    "#forge:stone"
+  ]
+}

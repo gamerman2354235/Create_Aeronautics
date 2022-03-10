@@ -77,7 +77,7 @@ public class CABlocks {
             .register();
 
     public static void register() {
-        Create.registrate().addToSection(TORSION_SPRING, AllSections.KINETICS);
+        //CreateAeronautics.registrate().addToSection(TORSION_SPRING, AllSections.KINETICS);
     }
 
 }
