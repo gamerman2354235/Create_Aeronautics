@@ -295,8 +295,6 @@ public class PhysicsManager {
                     for (int j = 0; j < 3; j++)
                         localInertiaTensor[i][j]-=blockMass*posArray[i]* posArray[j];
                 for (int i = 0; i < 3; i++) localInertiaTensor[i][i] += blockMass * pos.lengthSqr();
-
-
             }
         }
     }

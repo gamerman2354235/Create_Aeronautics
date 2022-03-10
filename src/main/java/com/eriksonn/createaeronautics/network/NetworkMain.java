@@ -1,10 +1,7 @@
 package com.eriksonn.createaeronautics.network;
 
 import com.eriksonn.createaeronautics.CreateAeronautics;
-import com.eriksonn.createaeronautics.network.packet.AirshipAddSubcontraptionPacket;
-import com.eriksonn.createaeronautics.network.packet.AirshipContraptionBlockUpdatePacket;
-import com.eriksonn.createaeronautics.network.packet.AirshipDestroySubcontraptionPacket;
-import com.eriksonn.createaeronautics.network.packet.AirshipUpdateSubcontraptionPacket;
+import com.eriksonn.createaeronautics.network.packet.*;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.IPacket;
 import net.minecraft.network.PacketDirection;
@@ -35,6 +32,7 @@ public class NetworkMain {
         CHANNEL.registerMessage(packetID++, AirshipAddSubcontraptionPacket.class, AirshipAddSubcontraptionPacket::encode, AirshipAddSubcontraptionPacket::new, AirshipAddSubcontraptionPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(packetID++, AirshipUpdateSubcontraptionPacket.class, AirshipUpdateSubcontraptionPacket::encode, AirshipUpdateSubcontraptionPacket::new, AirshipUpdateSubcontraptionPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(packetID++, AirshipDestroySubcontraptionPacket.class, AirshipDestroySubcontraptionPacket::encode, AirshipDestroySubcontraptionPacket::new, AirshipDestroySubcontraptionPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(packetID++, AirshipBEUpdatePacket.class, AirshipBEUpdatePacket::encode, AirshipBEUpdatePacket::new, AirshipBEUpdatePacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
     public static <T> void sendToServer(T t) {
