@@ -255,8 +255,9 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         for(Map.Entry<UUID,SubcontraptionRigidbody> entry : subcontraptionRigidbodyMap.entrySet())
         {
             SubcontraptionRigidbody rigidbody = entry.getValue();
+            Vector3d entityOffsetPosition = rigidbody.entity.position().subtract(getPlotOffset());
             mass+=rigidbody.localMass;
-            centerOfMass =centerOfMass.add(rigidbody.localCenterOfMass.scale(rigidbody.localMass));
+            centerOfMass =centerOfMass.add((rigidbody.localCenterOfMass.add(entityOffsetPosition)).scale(rigidbody.localMass));
         }
         centerOfMass = centerOfMass.scale(1/mass);
         entity.centerOfMassOffset=centerOfMass;
