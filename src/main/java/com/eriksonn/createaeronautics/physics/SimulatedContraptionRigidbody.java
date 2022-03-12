@@ -1,17 +1,20 @@
-package com.eriksonn.createaeronautics.contraptions;
+package com.eriksonn.createaeronautics.physics;
 
 
-import com.eriksonn.createaeronautics.CreateAeronautics;
-import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingBlock;
+import com.eriksonn.createaeronautics.contraptions.AirshipContraption;
+import com.eriksonn.createaeronautics.contraptions.AirshipContraptionEntity;
+import com.eriksonn.createaeronautics.contraptions.AirshipManager;
+import com.eriksonn.createaeronautics.physics.AbstractContraptionRigidbody;
 import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingTileEntity;
-import com.eriksonn.createaeronautics.dimension.AirshipDimensionManager;
 import com.eriksonn.createaeronautics.index.CABlocks;
 import com.eriksonn.createaeronautics.index.CAConfig;
 import com.eriksonn.createaeronautics.index.CATags;
 import com.eriksonn.createaeronautics.index.CATileEntities;
-import com.simibubi.create.AllTags;
+import com.eriksonn.createaeronautics.physics.PhysicsUtils;
+import com.eriksonn.createaeronautics.physics.SubcontraptionRigidbody;
 import com.simibubi.create.AllTileEntities;
 import com.simibubi.create.content.contraptions.components.fan.EncasedFanTileEntity;
+import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.Contraption;
 import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.SailBlock;
@@ -19,7 +22,6 @@ import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
@@ -31,37 +33,44 @@ import net.minecraft.world.gen.feature.template.Template;
 import java.util.*;
 
 
-public class PhysicsManager {
+public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody {
     AirshipContraptionEntity entity;
     AirshipContraption contraption;
-    Quaternion orientation;
+    public Quaternion orientation;
     Vector3d momentum=Vector3d.ZERO;
+
     Vector3d centerOfMass=Vector3d.ZERO;
-    Vector3d angularMomentum=Vector3d.ZERO;
-    Vector3d angularVelocity=Vector3d.ZERO;
-    double[][] localInertiaTensor=new double[3][3];
-    Quaternion principalRotation;
-    double[] principalInertia =new double[3];
+    double[][] inertiaTensor=new double[3][3];
     double mass;
+
+    public Vector3d angularMomentum=Vector3d.ZERO;
+    Vector3d angularVelocity=Vector3d.ZERO;
+    public Quaternion principalRotation;
+    public double[] principalInertia =new double[3];
     Vector3d localForce =Vector3d.ZERO;
     Vector3d globalForce =Vector3d.ZERO;
     Vector3d localTourqe =Vector3d.ZERO;
     Vector3d globalTourqe =Vector3d.ZERO;
-    Vector3d globalVelocity=Vector3d.ZERO;
+    public Vector3d globalVelocity=Vector3d.ZERO;
     Vector3d localVelocity=Vector3d.ZERO;
     double totalAccumulatedBuoyancy =0.0;
-    final double[][][] LeviCivitaTensor;
 
-    final double dt=0.05f;//converts the time unit to seconds instead of ticks
-    final double gravity=5.00;// m/s^2
     BuoyancyController levititeBuoyancyController=new BuoyancyController(6.0);
     boolean isInitialized=false;
 
     Vector3f CurrentAxis=new Vector3f(1,1,1);
     float CurrentAxisAngle = 0;
+    public Map<UUID, SubcontraptionRigidbody> subcontraptionRigidbodyMap;
 
+    Vector3d inertiaTensorI;
+    Vector3d inertiaTensorJ;
+    Vector3d inertiaTensorK;
 
-    public PhysicsManager(AirshipContraptionEntity entity)
+    Vector3d inverseInertiaTensorI;
+    Vector3d inverseInertiaTensorJ;
+    Vector3d inverseInertiaTensorK;
+
+    public SimulatedContraptionRigidbody(AirshipContraptionEntity entity)
     {
         orientation=Quaternion.ONE.copy();
         //orientation=new Quaternion(1,0,0,1);
@@ -69,19 +78,19 @@ public class PhysicsManager {
 
         this.entity=entity;
         momentum=Vector3d.ZERO;
-        LeviCivitaTensor=new double[3][3][3];
-        LeviCivitaTensor[0][1][2]=LeviCivitaTensor[2][0][1]=LeviCivitaTensor[1][2][0]=1;
-        LeviCivitaTensor[2][1][0]=LeviCivitaTensor[0][2][1]=LeviCivitaTensor[1][0][2]=-1;
+
         principalRotation =Quaternion.ONE.copy();
         //angularMomentum=new Vector3d(0,100,2);
         //principialRotation=new Quaternion(1,2,3,4);
         //principialRotation.normalize();
+        PhysicsUtils.generateLeviCivitaTensor();
+        subcontraptionRigidbodyMap=new HashMap<>();
     }
     public void tryInit()
     {
         if(!isInitialized) {
             contraption=entity.airshipContraption;
-            updateCenterOfMass();
+            //updateCenterOfMass();
             updateLevititeBuoyancy();
             isInitialized=true;
         }
@@ -92,7 +101,11 @@ public class PhysicsManager {
 
         if(contraption==null)
             return;
-        updateCenterOfMass();
+        generateMassDependentParameters(contraption,Vector3d.ZERO);
+
+        mergeMassFromSubContraptions();
+
+        //updateCenterOfMass();
         tryInit();
 
         //orientation=new Quaternion(0,0,0.3827f,0.9239f);
@@ -100,8 +113,8 @@ public class PhysicsManager {
 
 
 
-        updateWings();
-        updateInertia();
+        //updateWings();
+        //updateInertia();
         updateTileEntityInteractions();
         centerOfMass=Vector3d.ZERO;
         totalAccumulatedBuoyancy =0;
@@ -111,7 +124,7 @@ public class PhysicsManager {
 
         globalForce=globalForce.add(0,-totalAccumulatedBuoyancy,0);
 
-        momentum = momentum.add(rotateQuat(localForce.scale(dt),orientation)).add(globalForce.scale(dt));
+        momentum = momentum.add(rotateQuat(localForce.scale(PhysicsUtils.deltaTime),orientation)).add(globalForce.scale(PhysicsUtils.deltaTime));
         globalForce = Vector3d.ZERO;
         localForce = Vector3d.ZERO;
 
@@ -132,18 +145,18 @@ public class PhysicsManager {
 
 
         entity.quat=orientation.copy();
-        entity.velocity=globalVelocity.scale(dt);
-        entity.setDeltaMovement(globalVelocity.scale(dt));
-        entity.move(globalVelocity.x*dt,globalVelocity.y*dt,globalVelocity.z*dt);
+        entity.velocity=globalVelocity.scale(PhysicsUtils.deltaTime);
+        entity.setDeltaMovement(globalVelocity.scale(PhysicsUtils.deltaTime));
+        entity.move(globalVelocity.x*PhysicsUtils.deltaTime,globalVelocity.y*PhysicsUtils.deltaTime,globalVelocity.z*PhysicsUtils.deltaTime);
     }
-    protected void readAdditional(CompoundNBT compound, boolean spawnPacket) {
+    public void readAdditional(CompoundNBT compound, boolean spawnPacket) {
 
         orientation = readQuaternion(compound.getCompound("Orientation"));
         momentum = readVector(compound.getCompound("Momentum"));
         angularMomentum = readVector(compound.getCompound("AngularMomentum"));
     }
 
-    protected void writeAdditional(CompoundNBT compound, boolean spawnPacket) {
+    public void writeAdditional(CompoundNBT compound, boolean spawnPacket) {
         compound.put("Orientation",writeQuaternion(orientation));
         compound.put("Momentum",writeVector(momentum));
         compound.put("AngularMomentum",writeVector(angularMomentum));
@@ -180,9 +193,19 @@ public class PhysicsManager {
         double z = compound.getDouble("Z");
         return new Vector3d(x,y,z);
     }
+    public void addSubContraption(UUID uuid,AbstractContraptionEntity newEntity)
+    {
+        SubcontraptionRigidbody rigidbody = new SubcontraptionRigidbody(newEntity,this);
+        subcontraptionRigidbodyMap.put(uuid, rigidbody);
+        rigidbody.generateMassDependentParameters(newEntity.getContraption(),Vector3d.ZERO);
+    }
+    public void removeSubContraption(UUID uuid)
+    {
+        subcontraptionRigidbodyMap.remove(uuid);
+    }
     public Quaternion getPartialOrientation(float partialTick)
     {
-        Vector3d v = angularVelocity.scale(partialTick*dt*0.5f);
+        Vector3d v = angularVelocity.scale(partialTick*PhysicsUtils.deltaTime*0.5f);
         Quaternion q = new Quaternion((float)v.x,(float)v.y,(float)v.z, 1.0f);
         q.mul(orientation);
         q.normalize();
@@ -221,113 +244,59 @@ public class PhysicsManager {
         levititeBuoyancyController.set(levititeBlocks);
     }
 
-    private static final double scaleHeight=128.0;// exponential decay rate
-    private static final double worldHeight=256.0;// pressure at world height = 0
-    private static final double referenceHeight=64.0;// pressure at sea level = 1
-    private static final double worldHeightPressureOffset = Math.exp(-(worldHeight-referenceHeight)/scaleHeight);
-    //multiplier for buoyancy and propeller efficiency
-    public double getAirPressure(Vector3d pos)
+    void mergeMassFromSubContraptions()
     {
-        double height = pos.y;
-        return (Math.exp(-(height-referenceHeight)/scaleHeight)-worldHeightPressureOffset)/(1.0-worldHeightPressureOffset);
-    }
-    public double getAirPressureDerivative(Vector3d pos)
-    {
-        double height = pos.y;
-        return -(Math.exp(-(height-referenceHeight)/scaleHeight))/(scaleHeight*(1.0-worldHeightPressureOffset));
-    }
-    void updateCenterOfMass()
-    {
-        //Center of mass is the weighted average of the block positions, weighted by their mass
-        mass=0;
-        centerOfMass=Vector3d.ZERO;
-        for (Map.Entry<BlockPos, Template.BlockInfo> entry : contraption.getBlocks().entrySet()) {
-            if (!entry.getValue().state.isAir()) {
-                double blockMass=getBlockMass(entry.getValue());
-                Vector3d pos=new Vector3d(entry.getKey().getX(),entry.getKey().getY(),entry.getKey().getZ());
-                centerOfMass=centerOfMass.add(pos.scale(blockMass));
-                mass+=blockMass;
-            }
+        mass=localMass;
+        centerOfMass=localCenterOfMass.scale(mass);
+        inertiaTensor = localInertiaTensor.clone();
+        for(Map.Entry<UUID,SubcontraptionRigidbody> entry : subcontraptionRigidbodyMap.entrySet())
+        {
+            SubcontraptionRigidbody rigidbody = entry.getValue();
+            mass+=rigidbody.localMass;
+            centerOfMass =centerOfMass.add(rigidbody.localCenterOfMass.scale(rigidbody.localMass));
         }
-        // for every subcontraption, add its center of mass
-        for (Map.Entry<UUID, ControlledContraptionEntity> contraptionEntry : entity.subContraptions.entrySet()) {
-            for (Map.Entry<BlockPos, Template.BlockInfo> entry : contraptionEntry.getValue().getContraption().getBlocks().entrySet()) {
-                if (!entry.getValue().state.isAir()) {
-                    double blockMass=getBlockMass(entry.getValue());
-                    Vector3d pos=new Vector3d(entry.getKey().getX(),entry.getKey().getY(),entry.getKey().getZ());
-
-                    Vector3d anchorVec = contraptionEntry.getValue().getAnchorVec();
-                    BlockPos plotPos = AirshipManager.getPlotPosFromId(entity.plotId);
-                    if(entity.level.isClientSide) {
-                        anchorVec = anchorVec.subtract(0, plotPos.getY(), 0);
-                    } else {
-                        anchorVec = anchorVec.subtract(plotPos.getX(), plotPos.getY(), plotPos.getZ());
-                    }
-
-                    pos=anchorVec.add(contraptionEntry.getValue().applyRotation(pos, 1.0f));
-                    centerOfMass=centerOfMass.add(pos.scale(blockMass));
-                    mass+=blockMass;
-                }
-            }
-        }
-
-        centerOfMass=centerOfMass.scale(1.0/mass);
+        centerOfMass = centerOfMass.scale(1/mass);
         entity.centerOfMassOffset=centerOfMass;
-    }
-    double getBlockMass(Template.BlockInfo info)
-    {
-        if (info.state.is(CATags.LIGHT))
-        {
-            return CAConfig.LIGHT_BLOCK_WEIGHT.get();
-        }
-        return CAConfig.DEFAULT_BLOCK_WEIGHT.get();
-    }
-    void updateInertia()
-    {
-
-        localInertiaTensor=new double[3][3];
-
-        for (Map.Entry<BlockPos, Template.BlockInfo> entry : contraption.getBlocks().entrySet())
-        {
-            if(!entry.getValue().state.isAir())
-            {
-                double blockMass=getBlockMass(entry.getValue());
-                Vector3d pos=getLocalCoordinate(entry.getKey());
-                double[] posArray=new double[]{pos.x,pos.y,pos.z};
-
-                for (int i = 0; i < 3; i++)
-                    for (int j = 0; j < 3; j++)
-                        localInertiaTensor[i][j]-=blockMass*posArray[i]* posArray[j];
-                for (int i = 0; i < 3; i++) localInertiaTensor[i][i] += blockMass * pos.lengthSqr();
-
-
-            }
-        }
     }
     void updateRotation()
     {
         //Find the eigenvector decomposition of the inertia tensor
         //in terms of principal components and a quaternion rotation
-        updateSpectralDecomposition();
+
+
+        Vector3d I = new Vector3d(1,0,0);
+        Vector3d J = new Vector3d(0,1,0);
+        Vector3d K = new Vector3d(0,0,1);
 
         //column vectors of the original inertia tensor
-        Vector3d InertiaTensorI=new Vector3d(localInertiaTensor[0][0],localInertiaTensor[0][1],localInertiaTensor[0][2]);
-        Vector3d InertiaTensorJ=new Vector3d(localInertiaTensor[1][0],localInertiaTensor[1][1],localInertiaTensor[1][2]);
-        Vector3d InertiaTensorK=new Vector3d(localInertiaTensor[2][0],localInertiaTensor[2][1],localInertiaTensor[2][2]);
+        inertiaTensorI=new Vector3d(localInertiaTensor[0][0],localInertiaTensor[0][1],localInertiaTensor[0][2]);
+        inertiaTensorJ=new Vector3d(localInertiaTensor[1][0],localInertiaTensor[1][1],localInertiaTensor[1][2]);
+        inertiaTensorK=new Vector3d(localInertiaTensor[2][0],localInertiaTensor[2][1],localInertiaTensor[2][2]);
 
         //decomposition into principal components
-        principalInertia[0]=rotateQuat(InertiaTensorI, principalRotation).length();
-        principalInertia[1]=rotateQuat(InertiaTensorJ, principalRotation).length();
-        principalInertia[2]=rotateQuat(InertiaTensorK, principalRotation).length();
+        Vector3d principalVectorI = inertiaDecomposeRotate(I);
+        Vector3d principalVectorJ = inertiaDecomposeRotate(J);
+        Vector3d principalVectorK = inertiaDecomposeRotate(K);
+        principalInertia[0]=principalVectorI.length();
+        principalInertia[1]=principalVectorJ.length();
+        principalInertia[2]=principalVectorK.length();
         Vector3d inversePrincipialInertia = new Vector3d(
                 1/ principalInertia[0],
                 1/ principalInertia[1],
                 1/ principalInertia[2]);
 
+        double determinant = principalInertia[0]*principalInertia[1]*principalInertia[2];
+
+        inverseInertiaTensorI = inertiaTensorJ.cross(inertiaTensorK).scale(1/determinant);
+        inverseInertiaTensorJ = inertiaTensorK.cross(inertiaTensorI).scale(1/determinant);
+        inverseInertiaTensorK = inertiaTensorI.cross(inertiaTensorJ).scale(1/determinant);
+
+        updateSpectralDecomposition();
+
         //global tourqe to local reference frame
         localTourqe=localTourqe.add(rotateQuatReverse(globalTourqe,orientation));
 
-        angularMomentum=angularMomentum.add(localTourqe.scale(dt));
+        angularMomentum=angularMomentum.add(localTourqe.scale(PhysicsUtils.deltaTime));
         double momentumMag = angularMomentum.length();
         angularVelocity = rotateQuat(angularMomentum, principalRotation).multiply(inversePrincipialInertia);
 
@@ -337,11 +306,11 @@ public class PhysicsManager {
                 (principalInertia[1] - principalInertia[0]) * angularVelocity.x * angularVelocity.y
         );
 
-        angularVelocity = angularVelocity.add(angularAcceleration.multiply(inversePrincipialInertia.scale(dt)));
+        angularVelocity = angularVelocity.add(angularAcceleration.multiply(inversePrincipialInertia.scale(PhysicsUtils.deltaTime)));
 
         angularVelocity = rotateQuatReverse(angularVelocity, principalRotation);
 
-        angularMomentum = angularMomentum.add(rotateQuatReverse(angularAcceleration.scale(dt), principalRotation));
+        angularMomentum = angularMomentum.add(rotateQuatReverse(angularAcceleration.scale(PhysicsUtils.deltaTime), principalRotation));
 
         if (angularMomentum.lengthSqr() > 0)//reset the length to maintain conservation of momentum
         {
@@ -350,7 +319,7 @@ public class PhysicsManager {
 
         }
         angularMomentum=angularMomentum.scale(0.995);
-        Vector3d v = angularVelocity.scale(dt*0.5f);
+        Vector3d v = angularVelocity.scale(PhysicsUtils.deltaTime*0.5f);
         Quaternion q = new Quaternion((float)v.x,(float)v.y,(float)v.z, 1.0f);
         q.mul(orientation);
         orientation=q;
@@ -390,9 +359,7 @@ public class PhysicsManager {
         {
             Vector3d v=setVectorFromIndex(i,1);
 
-            v=rotateQuat(v, principalRotation);
-            v=multiplyMatrixArray(localInertiaTensor,v);
-            v=rotateQuatReverse(v, principalRotation);
+            v=inertiaDecomposeRotate(v);
 
             attemptedDecomposition[i][0]=v.x/scaleDown;
             attemptedDecomposition[i][1]=v.y/scaleDown;
@@ -421,8 +388,8 @@ public class PhysicsManager {
                     for(int r=0;r<3;r++)
                     {
                         if(k==r) continue;
-                        scalar+=LeviCivitaTensor[k][i][r]*attemptedDecomposition[r][j];
-                        scalar-=LeviCivitaTensor[k][r][j]*attemptedDecomposition[i][r];
+                        scalar+=PhysicsUtils.LeviCivitaTensor[k][i][r]*attemptedDecomposition[r][j];
+                        scalar-=PhysicsUtils.LeviCivitaTensor[k][r][j]*attemptedDecomposition[i][r];
                     }
                     v=setVectorFromIndex(k,scalar,v);
                 }
@@ -430,7 +397,7 @@ public class PhysicsManager {
             }
         }
 
-        double minCost=0.01;
+        double minCost=0.000000001;
         double stepScale=0.2;
         if(cost<minCost||gradientVector.lengthSqr()==0)
             return;
@@ -442,6 +409,40 @@ public class PhysicsManager {
         principalRotation.mul(q);
         principalRotation.normalize();
     }
+    Vector3d inertiaDecomposeRotate(Vector3d v)
+    {
+        v=rotateQuat(v, principalRotation);
+        v=multiplyInertia(v);
+        v=rotateQuatReverse(v, principalRotation);
+        return v;
+    }
+    /*void blockAddedEvent(BlockPos blockPos,Template.BlockInfo info)
+    {
+        LocalCenterOfMass = (LocalCenterOfMass * LocalMass + (Vector3)(Pos) * B.mass) / (LocalMass + B.mass);
+        LocalMass += B.mass;
+        double blockMass=getBlockMass(info);
+        Vector3d pos=getLocalCoordinate(blockPos);
+        double[] posArray=new double[]{pos.x,pos.y,pos.z};
+
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 3; j++)
+                localInertiaTensor[i][j]-=blockMass*posArray[i]* posArray[j];
+        for (int i = 0; i < 3; i++) localInertiaTensor[i][i] += blockMass * pos.lengthSqr();
+
+    }
+    void blockRemovedEvent(BlockPos blockPos,Template.BlockInfo info)
+    {
+        LocalCenterOfMass = (LocalCenterOfMass * LocalMass - (Vector3)(Pos) * B.mass) / (LocalMass - B.mass);
+        LocalMass -= B.mass;
+        double blockMass=getBlockMass(info);
+        Vector3d pos=getLocalCoordinate(blockPos);
+        double[] posArray=new double[]{pos.x,pos.y,pos.z};
+
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 3; j++)
+                localInertiaTensor[i][j]-=blockMass*posArray[i]* posArray[j];
+        for (int i = 0; i < 3; i++) localInertiaTensor[i][i] += blockMass * pos.lengthSqr();
+    }*/
     Vector3d setVectorFromIndex(int i,double value)
     {
         double x=0,y=0,z=0;
@@ -474,6 +475,10 @@ public class PhysicsManager {
             case(2):return V.z;
         }
         return 0;
+    }
+    double sq(double x)
+    {
+        return x*x;
     }
     Vector3d multiplyMatrixArray(double[][] M,Vector3d v)
     {
@@ -521,6 +526,15 @@ public class PhysicsManager {
             }
         }
     }
+    public Vector3d getPlotOffset()
+    {
+        BlockPos plotPos = AirshipManager.getPlotPosFromId(entity.plotId);
+        if(entity.level.isClientSide) {
+            return new Vector3d(0, plotPos.getY(), 0);
+        } else {
+            return new Vector3d(plotPos.getX(), plotPos.getY(), plotPos.getZ());
+        }
+    }
     void updateTileEntityInteractions()
     {
         Vector3d TotalForce=Vector3d.ZERO;
@@ -537,16 +551,72 @@ public class PhysicsManager {
         }
         momentum=momentum.add(TotalForce);
     }
-    void addForce(Vector3d force, Vector3d pos)
+    public double getMass()
+    {
+        return mass;
+    }
+
+    public Vector3d getCenterOfMass() {
+        return centerOfMass;
+    }
+    //angular momentum to angular velocity
+    public Vector3d multiplyInertia(Vector3d v) {
+        return inertiaTensorI.scale(v.x).add(inertiaTensorJ.scale(v.y)).add(inertiaTensorK.scale(v.z));
+    }
+    //angular velocity to angular momentum
+    public Vector3d multiplyInertiaInverse(Vector3d v) {
+        return inverseInertiaTensorI.scale(v.x).add(inverseInertiaTensorJ.scale(v.y)).add(inverseInertiaTensorK.scale(v.z));
+    }
+
+    public Vector3d rotate(Vector3d point) {
+        return rotateQuat(point,orientation);
+    }
+
+    public Vector3d rotateInverse(Vector3d point) {
+        return rotateQuatReverse(point,orientation);
+    }
+
+    public Vector3d toLocal(Vector3d globalPoint) {
+        return rotateQuatReverse(globalPoint.subtract(entity.position()).subtract(centerOfMass),orientation).add(centerOfMass);
+    }
+
+    public Vector3d toGlobal(Vector3d localPoint) {
+        return rotateQuat(localPoint.subtract(centerOfMass),orientation).add(centerOfMass).add(entity.position());
+    }
+
+    public Vector3d getVelocity() {
+        return globalVelocity;
+    }
+
+    public Vector3d getVelocityAtPoint(Vector3d pos) {
+        return globalVelocity.add(pos.cross(angularVelocity));
+    }
+
+    public Vector3d getAngularVelocity() {
+        return angularVelocity;
+    }
+
+    public void addForce(Vector3d force, Vector3d pos)
     {
         localForce = localForce.add(force);
         localTourqe = localTourqe.add(force.cross(pos));
     }
-    void addGlobalForce(Vector3d force, Vector3d pos)
+    public void addGlobalForce(Vector3d force, Vector3d pos)
     {
         globalForce = globalForce.add(force);
         globalTourqe = globalTourqe.add(force.cross(pos));
     }
+
+
+    public void addVelocity(Vector3d pos, Vector3d velocity) {
+
+    }
+
+
+    public void addGlobalVelocity(Vector3d pos, Vector3d velocity) {
+
+    }
+
     Vector3d getLocalVelocityAtPosition(Vector3d pos)
     {
         return localVelocity.add(pos.cross(angularVelocity));
@@ -624,8 +694,8 @@ public class PhysicsManager {
             total buoyancy is then the sum of all those weights
             */
 
-            double referenceBuoyancy = gravity*getAirPressure(referencePos)*strengthScale;
-            double referenceBuoyancyDerivative = gravity*getAirPressureDerivative(referencePos)*strengthScale;
+            double referenceBuoyancy = PhysicsUtils.gravity*PhysicsUtils.getAirPressure(referencePos)*strengthScale;
+            double referenceBuoyancyDerivative = PhysicsUtils.gravity* PhysicsUtils.getAirPressureDerivative(referencePos)*strengthScale;
             Vector3d rotatedAverage = rotateQuat(averagePos,rotation);
             double averageBuoyancy = referenceBuoyancy + rotatedAverage.dot(upVector) * referenceBuoyancyDerivative;
             double totalBuoyancy = averageBuoyancy*totalCount;

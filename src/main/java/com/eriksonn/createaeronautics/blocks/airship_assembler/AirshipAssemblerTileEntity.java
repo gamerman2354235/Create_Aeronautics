@@ -59,7 +59,7 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
             contraption.removeBlocksFromWorld(this.level, BlockPos.ZERO);
             this.movedContraption = AirshipContraptionEntity.create(this.level, contraption);
             BlockPos anchor = this.worldPosition;
-            this.movedContraption.physicsManager.tryInit();
+            this.movedContraption.simulatedRigidbody.tryInit();
 
             this.movedContraption.setPos(
                     (double)anchor.getX()+this.movedContraption.centerOfMassOffset.x,

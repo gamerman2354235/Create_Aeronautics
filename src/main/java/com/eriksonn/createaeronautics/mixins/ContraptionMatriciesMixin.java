@@ -38,7 +38,7 @@ public class ContraptionMatriciesMixin {
     private void onSetupTransforms(MatrixStack viewProjection, AbstractContraptionEntity entity, CallbackInfo ci)
     {
 
-        setupTransforms(entity, model);
+        setupTransforms(entity, model,AnimationTickHolder.getPartialTicks());
 
     }
     //@Inject(locals = LocalCapture.CAPTURE_FAILHARD,remap=false,method = "setup", at = @At("HEAD"))
