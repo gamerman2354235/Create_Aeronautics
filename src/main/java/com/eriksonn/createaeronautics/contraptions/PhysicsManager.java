@@ -9,6 +9,7 @@ import com.eriksonn.createaeronautics.index.CABlocks;
 import com.eriksonn.createaeronautics.index.CAConfig;
 import com.eriksonn.createaeronautics.index.CATags;
 import com.eriksonn.createaeronautics.index.CATileEntities;
+import com.eriksonn.createaeronautics.particle.PropellerAirParticleData;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.AllTileEntities;
 import com.simibubi.create.content.contraptions.components.fan.EncasedFanTileEntity;
@@ -26,6 +27,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.gen.feature.template.Template;
 
 import java.util.*;
@@ -564,8 +566,22 @@ public class PhysicsManager {
     Vector3d getForceEncasedFan(BlockPos pos,EncasedFanTileEntity te)
     {
 
-        Vector3d direction=getFacingVector(te.getBlockState());
+        Vector3d facingVector = getFacingVector(te.getBlockState());
+        Vector3d direction= facingVector;
+        // abs dir
+        direction = new Vector3d(Math.abs(direction.x),Math.abs(direction.y),Math.abs(direction.z));
         float magnitude = 0.5f*te.getSpeed();
+
+        Vector3d vector3d = entity.toGlobalVector(new Vector3d(pos.getX(), pos.getY(), pos.getZ()).add(0.5,0.5,0.5), 1.0f);
+        Vector3d pPos = vector3d;
+        Vector3d veloVector = entity.applyRotation(facingVector,1.0f);
+
+        float particleSpeed = te.getSpeed() / 256;
+        veloVector = veloVector.scale(Math.abs(particleSpeed));
+        if(Math.abs(particleSpeed) > 0) {
+            entity.level.addParticle(new PropellerAirParticleData(new Vector3i(vector3d.x, vector3d.y, vector3d.z)), pPos.x, pPos.y, pPos.z, veloVector.x, veloVector.y, veloVector.z);
+        }
+
         return direction.scale(magnitude);
     }
 

@@ -61,8 +61,9 @@ public abstract class ServerWorldEventMixin {
     public void sendBlockUpdated(BlockPos pos, BlockState oldState, BlockState newState, int flags, CallbackInfo ci) {
         if (((Object) this) instanceof ServerWorld && ((ServerWorld) (Object) this).dimension() == AirshipDimensionManager.WORLD_ID) {
             int id = AirshipManager.getIdFromPlotPos(pos);
+            BlockPos plotPos = AirshipManager.getPlotPosFromId(id);
             try {
-                AirshipManager.INSTANCE.AllAirships.get(id).stcQueueBlockUpdate(pos.offset(-64, -64, -64));
+                AirshipManager.INSTANCE.AllAirships.get(id).stcQueueBlockUpdate(pos.offset(-plotPos.getX(), -plotPos.getY(), -plotPos.getZ()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
