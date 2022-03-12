@@ -6,6 +6,9 @@ import com.eriksonn.createaeronautics.index.CAEntityTypes;
 import com.eriksonn.createaeronautics.network.packet.*;
 import com.simibubi.create.AllEntityTypes;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.CommandBlockTileEntity;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.HashMap;
@@ -54,6 +57,21 @@ public class ClientPacketHandler {
             AirshipContraptionEntity airship = allAirships.get(msg.plotID);
 
             airship.destroySubcontraptionClient(msg.uuid);
+        }
+    }
+
+    public static void handlePacket(AirshipBEUpdatePacket msg, Supplier<NetworkEvent.Context> ctx) {
+        Map<Integer, AirshipContraptionEntity> allAirships = AirshipManager.INSTANCE.AllClientAirships;
+
+        if (allAirships.containsKey(msg.airshipID)) {
+            AirshipContraptionEntity airship = allAirships.get(msg.airshipID);
+
+            TileEntity tileEntity = airship.fakeClientWorld.getBlockEntity(msg.pos);
+            if (tileEntity == null) return;
+
+            tileEntity.handleUpdateTag(airship.fakeClientWorld.getBlockState(msg.pos), msg.nbt);
+            tileEntity.onDataPacket(ctx.get().getNetworkManager(), new SUpdateTileEntityPacket(msg.pos, msg.type, msg.nbt));
+            tileEntity.setLevelAndPosition(airship.fakeClientWorld, msg.pos);
         }
     }
 }

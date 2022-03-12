@@ -69,7 +69,7 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
             AllSoundEvents.CONTRAPTION_ASSEMBLE.playOnServer(this.level, this.worldPosition);
             this.running = true;
 
-            contraption.addBlocksToWorld(airshipWorld,new StructureTransform(AirshipManager.getPlotPosFromId(0), 0.0F, 0, 0.0F));
+            contraption.addBlocksToWorld(airshipWorld,new StructureTransform(this.movedContraption.getPlotPos(), 0.0F, 0, 0.0F));
             this.sendData();
         }
     }

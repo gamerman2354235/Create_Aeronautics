@@ -5,6 +5,7 @@ import com.eriksonn.createaeronautics.world.FakeAirshipClientWorld;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
+import com.simibubi.create.foundation.utility.AnimationTickHolder;
 import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
@@ -12,14 +13,14 @@ import net.minecraft.util.math.vector.Vector3d;
 
 public class SubcontraptionMatrixTransformer {
 
-    public static void setupTransforms(AbstractContraptionEntity entity, MatrixStack model,float partialTicks) {
+    public static void setupTransforms(AbstractContraptionEntity entity, MatrixStack model) {
         if(entity instanceof ControlledContraptionEntity && entity.level instanceof FakeAirshipClientWorld)
         {
             int plotId = AirshipManager.getIdFromPlotPos(((FakeAirshipClientWorld) entity.level).airship.blockPosition());
             AirshipContraptionEntity airshipEntity = AirshipManager.INSTANCE.AllClientAirships.get(plotId);
             if(airshipEntity!=null) {
                 BlockPos clientWorldOffset = AirshipManager.getPlotPosFromId(plotId);
-                Vector3d airshipPosition = airshipEntity.getAnchorVec();
+                Vector3d airshipPosition = airshipEntity.getPartialPosition(AnimationTickHolder.getPartialTicks());
 
 
                 Vector3d rotationOffset = VecHelper.getCenterOf(BlockPos.ZERO);
@@ -32,7 +33,7 @@ public class SubcontraptionMatrixTransformer {
 
                 model.translate(-localPosition.x, -localPosition.y, -localPosition.z);
 
-                Vector3d centerOfMassOffset = airshipEntity.applyRotation(airshipEntity.centerOfMassOffset, partialTicks);
+                Vector3d centerOfMassOffset = airshipEntity.applyRotation(airshipEntity.centerOfMassOffset, AnimationTickHolder.getPartialTicks());
                 model.translate(-centerOfMassOffset.x, -centerOfMassOffset.y, -centerOfMassOffset.z);
 
 
@@ -43,7 +44,7 @@ public class SubcontraptionMatrixTransformer {
                 Q.conj();
                 model.mulPose(Q);
 
-                Vector3d postRotationOffset = airshipEntity.applyRotation(rotationOffset, partialTicks);
+                Vector3d postRotationOffset = airshipEntity.applyRotation(rotationOffset, AnimationTickHolder.getPartialTicks());
                 model.translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
 //                model.translate(-postRotationOffset.x, -postRotationOffset.y, -postRotationOffset.z);
 //                model.translate(rotat.x, postRotationOffset.y, postRotationOffset.z);

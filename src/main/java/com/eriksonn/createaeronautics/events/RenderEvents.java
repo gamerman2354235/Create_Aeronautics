@@ -49,7 +49,7 @@ public class RenderEvents {
 
         double reach = mc.gameMode.getPickRange();
         if (mc.hitResult != null && mc.hitResult.getLocation() != null)
-            reach = Math.min(mc.hitResult.getLocation()
+            reach = Math.max(mc.hitResult.getLocation()
                     .distanceTo(origin), reach);
 
         Vector3d target = RaycastHelper.getTraceTarget(mc.player, reach, origin);
