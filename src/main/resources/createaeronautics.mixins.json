@@ -5,22 +5,24 @@
   "refmap": "createaeronautics.refmap.json",
   "mixins": [
     "AbstractContraptionEntityMixin",
+    "ClientWorldAccessorMixin",
+    "ContraptionColliderMixin",
     "ContraptionHolderAccessor",
     "ContraptionMatriciesMixin",
     "ContraptionMixin",
     "ContraptionRenderInfoMixin",
     "ContraptionRenderMixin",
+    "ControlledContraptionEntityMixin",
     "DimensionTypeMixin",
     "Matrix3dAccessor",
     "MechanicalBearingTileEntityAccessor",
     "PotatoProjectileEntityMixin",
+    "RedstoneLinkNetworkMixin",
     "RotationPropagatorMixin",
-    "WorldEventMixin",
     "ServerWorldEventMixin",
-    "WorldRendererMixin",
-    "ContraptionColliderMixin",
     "WorldAccessorMixin",
-    "ClientWorldAccessorMixin"
+    "WorldEventMixin",
+    "WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
