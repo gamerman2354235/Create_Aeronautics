@@ -4,16 +4,10 @@ package com.eriksonn.createaeronautics.physics;
 import com.eriksonn.createaeronautics.contraptions.AirshipContraption;
 import com.eriksonn.createaeronautics.contraptions.AirshipContraptionEntity;
 import com.eriksonn.createaeronautics.contraptions.AirshipManager;
-import com.eriksonn.createaeronautics.physics.AbstractContraptionRigidbody;
 import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingTileEntity;
 import com.eriksonn.createaeronautics.index.CABlocks;
-import com.eriksonn.createaeronautics.index.CAConfig;
-import com.eriksonn.createaeronautics.index.CATags;
 import com.eriksonn.createaeronautics.index.CATileEntities;
-import com.eriksonn.createaeronautics.physics.PhysicsUtils;
-import com.eriksonn.createaeronautics.physics.SubcontraptionRigidbody;
 import com.eriksonn.createaeronautics.particle.PropellerAirParticleData;
-import com.simibubi.create.AllTags;
 import com.simibubi.create.AllTileEntities;
 import com.simibubi.create.content.contraptions.components.fan.EncasedFanTileEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
@@ -52,8 +46,8 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     public double[] principalInertia =new double[3];
     Vector3d localForce =Vector3d.ZERO;
     Vector3d globalForce =Vector3d.ZERO;
-    Vector3d localTourqe =Vector3d.ZERO;
-    Vector3d globalTourqe =Vector3d.ZERO;
+    Vector3d localTorque =Vector3d.ZERO;
+    Vector3d globalTorque =Vector3d.ZERO;
     public Vector3d globalVelocity=Vector3d.ZERO;
     Vector3d localVelocity=Vector3d.ZERO;
     double totalAccumulatedBuoyancy =0.0;
@@ -83,7 +77,7 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         momentum=Vector3d.ZERO;
 
         principalRotation =Quaternion.ONE.copy();
-        //angularMomentum=new Vector3d(0,100,2);
+        angularMomentum=new Vector3d(0,800,0);
         //principialRotation=new Quaternion(1,2,3,4);
         //principialRotation.normalize();
         PhysicsUtils.generateLeviCivitaTensor();
@@ -251,15 +245,39 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     {
         mass=localMass;
         centerOfMass=localCenterOfMass.scale(mass);
+        for(Map.Entry<UUID,SubcontraptionRigidbody> entry : subcontraptionRigidbodyMap.entrySet()) {
+            SubcontraptionRigidbody rigidbody = entry.getValue();
+            Vector3d entityOffsetPosition = rigidbody.entity.position().subtract(getPlotOffset());
+            Vector3d pos = rigidbody.rotateLocal(rigidbody.localCenterOfMass).add(entityOffsetPosition);
+            mass+=rigidbody.localMass;
+            centerOfMass =centerOfMass.add(pos.scale(rigidbody.localMass));
+        }
+        centerOfMass = centerOfMass.scale(1/mass);
+
         inertiaTensor = localInertiaTensor.clone();
+        Vector3d localShift = centerOfMass.subtract(localCenterOfMass);
+        double[] posArray=new double[]{localShift.x,localShift.y,localShift.z};
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 3; j++)
+                inertiaTensor[i][j] -= localMass*posArray[i]* posArray[j];
+        for (int i = 0; i < 3; i++) inertiaTensor[i][i] +=localMass * localShift.lengthSqr();
+
+
         for(Map.Entry<UUID,SubcontraptionRigidbody> entry : subcontraptionRigidbodyMap.entrySet())
         {
             SubcontraptionRigidbody rigidbody = entry.getValue();
             Vector3d entityOffsetPosition = rigidbody.entity.position().subtract(getPlotOffset());
-            mass+=rigidbody.localMass;
-            centerOfMass =centerOfMass.add((rigidbody.localCenterOfMass.add(entityOffsetPosition)).scale(rigidbody.localMass));
+            Vector3d pos = rigidbody.rotateLocal(rigidbody.localCenterOfMass).add(entityOffsetPosition);
+
+            pos = pos.subtract(centerOfMass);
+
+            posArray=new double[]{pos.x,pos.y,pos.z};
+            for (int i = 0; i < 3; i++)
+                for (int j = 0; j < 3; j++)
+                    inertiaTensor[i][j]+= rigidbody.localInertiaTensor[i][j] - rigidbody.localMass*posArray[i]* posArray[j];
+            for (int i = 0; i < 3; i++) inertiaTensor[i][i] +=rigidbody.localMass * pos.lengthSqr();
         }
-        centerOfMass = centerOfMass.scale(1/mass);
+
         entity.centerOfMassOffset=centerOfMass;
     }
     void updateRotation()
@@ -268,28 +286,20 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         //in terms of principal components and a quaternion rotation
 
 
-        Vector3d I = new Vector3d(1,0,0);
-        Vector3d J = new Vector3d(0,1,0);
-        Vector3d K = new Vector3d(0,0,1);
-
         //column vectors of the original inertia tensor
-        inertiaTensorI=new Vector3d(localInertiaTensor[0][0],localInertiaTensor[0][1],localInertiaTensor[0][2]);
-        inertiaTensorJ=new Vector3d(localInertiaTensor[1][0],localInertiaTensor[1][1],localInertiaTensor[1][2]);
-        inertiaTensorK=new Vector3d(localInertiaTensor[2][0],localInertiaTensor[2][1],localInertiaTensor[2][2]);
+        inertiaTensorI=new Vector3d(inertiaTensor[0][0],inertiaTensor[0][1],inertiaTensor[0][2]);
+        inertiaTensorJ=new Vector3d(inertiaTensor[1][0],inertiaTensor[1][1],inertiaTensor[1][2]);
+        inertiaTensorK=new Vector3d(inertiaTensor[2][0],inertiaTensor[2][1],inertiaTensor[2][2]);
 
         //decomposition into principal components
-        Vector3d principalVectorI = inertiaDecomposeRotate(I);
-        Vector3d principalVectorJ = inertiaDecomposeRotate(J);
-        Vector3d principalVectorK = inertiaDecomposeRotate(K);
+        Vector3d principalVectorI = getPrincipalComponent(0);
+        Vector3d principalVectorJ = getPrincipalComponent(1);
+        Vector3d principalVectorK = getPrincipalComponent(2);
         principalInertia[0]=principalVectorI.length();
         principalInertia[1]=principalVectorJ.length();
         principalInertia[2]=principalVectorK.length();
-        Vector3d inversePrincipialInertia = new Vector3d(
-                1/ principalInertia[0],
-                1/ principalInertia[1],
-                1/ principalInertia[2]);
 
-        double determinant = principalInertia[0]*principalInertia[1]*principalInertia[2];
+        double determinant = principalVectorI.dot(principalVectorJ.cross(principalVectorK));
 
         inverseInertiaTensorI = inertiaTensorJ.cross(inertiaTensorK).scale(1/determinant);
         inverseInertiaTensorJ = inertiaTensorK.cross(inertiaTensorI).scale(1/determinant);
@@ -297,24 +307,29 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
 
         updateSpectralDecomposition();
 
-        //global tourqe to local reference frame
-        localTourqe=localTourqe.add(rotateQuatReverse(globalTourqe,orientation));
+        //global torque to local reference frame
+        localTorque = localTorque.add(rotateQuatReverse(globalTorque,orientation));
 
-        angularMomentum=angularMomentum.add(localTourqe.scale(PhysicsUtils.deltaTime));
+        //torque gives a change of angular momentum over time
+        angularMomentum=angularMomentum.add(localTorque.scale(PhysicsUtils.deltaTime));
         double momentumMag = angularMomentum.length();
-        angularVelocity = rotateQuat(angularMomentum, principalRotation).multiply(inversePrincipialInertia);
+        //rotate the angular momentum into the principal reference frame and scale by the inverse of the inertia
+        //tensor to get angular velocity in the principal frame
+        Vector3d principalVelocity = rotateQuat(multiplyInertiaInverse(angularMomentum), principalRotation);
 
-        Vector3d angularAcceleration = new Vector3d(
-                (principalInertia[2] - principalInertia[1]) * angularVelocity.y * angularVelocity.z,
-                (principalInertia[0] - principalInertia[2]) * angularVelocity.z * angularVelocity.x,
-                (principalInertia[1] - principalInertia[0]) * angularVelocity.x * angularVelocity.y
+        //euler's rotation equations
+        Vector3d principalTorque = new Vector3d(
+                (principalInertia[2] - principalInertia[1]) * principalVelocity.y * principalVelocity.z,
+                (principalInertia[0] - principalInertia[2]) * principalVelocity.z * principalVelocity.x,
+                (principalInertia[1] - principalInertia[0]) * principalVelocity.x * principalVelocity.y
         );
 
-        angularVelocity = angularVelocity.add(angularAcceleration.multiply(inversePrincipialInertia.scale(PhysicsUtils.deltaTime)));
+        //rotate the torque back to the contraption grid
+        Vector3d extraTorque = rotateQuatReverse(principalTorque, principalRotation);
 
-        angularVelocity = rotateQuatReverse(angularVelocity, principalRotation);
+        angularMomentum = angularMomentum.add(extraTorque.scale(PhysicsUtils.deltaTime));
 
-        angularMomentum = angularMomentum.add(rotateQuatReverse(angularAcceleration.scale(PhysicsUtils.deltaTime), principalRotation));
+        angularVelocity=multiplyInertiaInverse(angularMomentum);
 
         if (angularMomentum.lengthSqr() > 0)//reset the length to maintain conservation of momentum
         {
@@ -322,15 +337,15 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
             angularMomentum=angularMomentum.scale(momentumMag);
 
         }
-        angularMomentum=angularMomentum.scale(0.995);
+        //angularMomentum=angularMomentum.scale(0.995);
         Vector3d v = angularVelocity.scale(PhysicsUtils.deltaTime*0.5f);
         Quaternion q = new Quaternion((float)v.x,(float)v.y,(float)v.z, 1.0f);
         q.mul(orientation);
         orientation=q;
         orientation.normalize();
 
-        localTourqe =Vector3d.ZERO;
-        globalTourqe=Vector3d.ZERO;
+        localTorque =Vector3d.ZERO;
+        globalTorque =Vector3d.ZERO;
     }
     void updateSpectralDecomposition()
     {
@@ -361,9 +376,8 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         double[][] attemptedDecomposition = new double[3][3];
         for (int i =0;i<3;i++)
         {
-            Vector3d v=setVectorFromIndex(i,1);
 
-            v=inertiaDecomposeRotate(v);
+            Vector3d v=getPrincipalComponent(i);
 
             attemptedDecomposition[i][0]=v.x/scaleDown;
             attemptedDecomposition[i][1]=v.y/scaleDown;
@@ -413,8 +427,9 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         principalRotation.mul(q);
         principalRotation.normalize();
     }
-    Vector3d inertiaDecomposeRotate(Vector3d v)
+    Vector3d getPrincipalComponent(int column)
     {
+        Vector3d v=setVectorFromIndex(column,1);
         v=rotateQuat(v, principalRotation);
         v=multiplyInertia(v);
         v=rotateQuatReverse(v, principalRotation);
@@ -580,6 +595,14 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         return rotateQuatReverse(point,orientation);
     }
 
+    public Vector3d rotateLocal(Vector3d point) {
+        return rotateQuat(point,orientation);
+    }
+
+    public Vector3d rotateLocalInverse(Vector3d point) {
+        return rotateQuatReverse(point,orientation);
+    }
+
     public Vector3d toLocal(Vector3d globalPoint) {
         return rotateQuatReverse(globalPoint.subtract(entity.position()).subtract(centerOfMass),orientation).add(centerOfMass);
     }
@@ -603,12 +626,12 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     public void addForce(Vector3d force, Vector3d pos)
     {
         localForce = localForce.add(force);
-        localTourqe = localTourqe.add(force.cross(pos));
+        localTorque = localTorque.add(force.cross(pos));
     }
     public void addGlobalForce(Vector3d force, Vector3d pos)
     {
         globalForce = globalForce.add(force);
-        globalTourqe = globalTourqe.add(force.cross(pos));
+        globalTorque = globalTorque.add(force.cross(pos));
     }
 
 

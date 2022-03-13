@@ -16,6 +16,8 @@ public interface IRigidbody {
     //#region Movement
     Vector3d rotate(Vector3d point);
     Vector3d rotateInverse(Vector3d point);
+    Vector3d rotateLocal(Vector3d point);
+    Vector3d rotateLocalInverse(Vector3d point);
     Vector3d toLocal(Vector3d globalPoint);
     Vector3d toGlobal(Vector3d localPoint);
     Vector3d getVelocity();

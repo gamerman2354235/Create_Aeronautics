@@ -32,7 +32,7 @@ public abstract class AbstractContraptionRigidbody implements IRigidbody{
                 double blockMass=PhysicsUtils.getBlockMass(entry.getValue());
                 Vector3d pos=new Vector3d(entry.getKey().getX(),entry.getKey().getY(),entry.getKey().getZ());
                 pos=pos.subtract(offset);
-                pos.subtract(localCenterOfMass);
+                pos=pos.subtract(localCenterOfMass);
 
                 double[] posArray=new double[]{pos.x,pos.y,pos.z};
                 //TODO: Fix single blocks or lines of blocks causing zero inertia, as that leads to nan issues later on

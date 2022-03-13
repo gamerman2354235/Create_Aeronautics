@@ -40,6 +40,13 @@ public class SubcontraptionRigidbody extends AbstractContraptionRigidbody {
     public Vector3d rotateInverse(Vector3d point) {
         return entity.reverseRotation(parentRigidbody.rotateInverse(point),0);
     }
+    public Vector3d rotateLocal(Vector3d point) {
+        return entity.applyRotation(point,0);
+    }
+
+    public Vector3d rotateLocalInverse(Vector3d point) {
+        return entity.reverseRotation(point,0);
+    }
 
     public Vector3d toLocal(Vector3d globalPoint) {
         return fromParent(parentRigidbody.toLocal(globalPoint));
