@@ -76,12 +76,13 @@ public class CABlocks {
             .item()
             .transform(customItemModel())
             .register();
+
     public static final BlockEntry<StirlingEngineBlock> STIRLING_ENGINE = REGISTRATE.block("stirling_engine", StirlingEngineBlock::new)
             .initialProperties(SharedProperties::stone)
             .properties(AbstractBlock.Properties::noOcclusion)
+            .blockstate(BlockStateUtils::horizontalFacingLitBlockstate)
             .tag(AllTags.AllBlockTags.SAFE_NBT.tag) //Dono what this tag means (contraption safe?).
-            .item()
-            .transform(customItemModel())
+            .item().transform(customItemModel())
             .register();
 
     public static void register() {
