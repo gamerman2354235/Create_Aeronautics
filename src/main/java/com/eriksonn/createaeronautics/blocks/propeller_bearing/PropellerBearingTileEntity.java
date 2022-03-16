@@ -103,7 +103,7 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
         float speed = rotationSpeed;
         if (level.isClientSide) {
             speed *= ServerSpeedProvider.get();
-            //speed += clientAngleDiff / 3f;
+            speed += clientAngleDiff / 3f;
         }
         return speed;
     }
@@ -160,11 +160,9 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
         // the closest grid-aligned angle to currentStoppingPoint
         float optimalStoppingPoint = 90f*Math.round(currentStoppingPoint/90f);
 
-        // Q is an inverse-lerp that solves this equation:
-        // optimalStoppingPoint = lerp(currentStoppingPoint,angle,Q)
-        float Q = (optimalStoppingPoint-currentStoppingPoint)/(angle-currentStoppingPoint);
+        float Q = (optimalStoppingPoint-currentStoppingPoint)/disassemblyTimer;
 
-        rotationSpeed *= (1f - 3f*Q/disassemblyTimer)*(1f - 1f/disassemblyTimer);
+        rotationSpeed = (rotationSpeed + 6f*Q/disassemblyTimer)*(1f - 1f/disassemblyTimer);
     }
     @Override
     public void attach(ControlledContraptionEntity contraption)
@@ -208,7 +206,7 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
 
     public void spawnParticles()
     {
-        if(getSpeed()!=0 && movedContraption!=null &&isRunning()) {
+        if(Math.abs(rotationSpeed)>0.01 && movedContraption!=null &&isRunning()) {
             World world = getLevel();
             Direction direction = getBlockState().getValue(BlockStateProperties.FACING);
             Vector3f speed = new Vector3f(direction.getNormal().getX(), direction.getNormal().getY(), direction.getNormal().getZ());

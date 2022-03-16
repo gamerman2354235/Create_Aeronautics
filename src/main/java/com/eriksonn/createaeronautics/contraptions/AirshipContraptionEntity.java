@@ -126,11 +126,12 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
         if (level.isClientSide) {
             profiler.startTick();
             fakeClientWorld.tick(() -> true);
-            fakeClientWorld.tickEntities();
+
 
             for (ControlledContraptionEntity contraptionEntity : subContraptions.values()) {
                 contraptionEntity.tick();
             }
+            fakeClientWorld.tickEntities();
 
             profiler.endTick();
 
