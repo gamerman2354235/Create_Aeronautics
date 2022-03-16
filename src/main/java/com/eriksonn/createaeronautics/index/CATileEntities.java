@@ -4,6 +4,7 @@ package com.eriksonn.createaeronautics.index;
 import com.eriksonn.createaeronautics.CreateAeronautics;
 import com.eriksonn.createaeronautics.blocks.airship_assembler.AirshipAssemblerTileEntity;
 import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingTileEntity;
+import com.eriksonn.createaeronautics.blocks.stirling_engine.StirlingEngineTileEntity;
 import com.eriksonn.createaeronautics.blocks.torsion_spring.TorsionSpringTileEntity;
 import com.eriksonn.createaeronautics.blocks.stationary_potato_cannon.StationaryPotatoCannonInstance;
 import com.eriksonn.createaeronautics.blocks.stationary_potato_cannon.StationaryPotatoCannonRenderer;
@@ -38,6 +39,10 @@ public class CATileEntities {
             .instance(() -> BearingInstance::new)
             .validBlocks(CABlocks.PROPELLER_BEARING)
             .renderer(() -> BearingRenderer::new)
+            .register();
+    public static final TileEntityEntry<StirlingEngineTileEntity> STIRLING_ENGINE = CreateAeronautics.registrate()
+            .tileEntity("stirling_engine", StirlingEngineTileEntity::new)
+            .validBlocks(CABlocks.STIRLING_ENGINE)
             .register();
     public static void register() {}
 }
