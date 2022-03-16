@@ -16,11 +16,11 @@ public class CAItems {
             .item("endstone_powder", Item::new)
             .register();
 
-    public static final ItemEntry<GogglesItem> GOGGLES = REGISTRATE.item("aviator_goggles", GogglesItem::new)
-            .properties(p -> p.stacksTo(1))
-            .onRegister(REGISTRATE.itemModel(() -> GogglesModel::new))
-            .lang("Aviator's Goggles")
-            .register();
+    //public static final ItemEntry<GogglesItem> GOGGLES = REGISTRATE.item("aviator_goggles", GogglesItem::new)
+    //        .properties(p -> p.stacksTo(1))
+    //        .onRegister(REGISTRATE.itemModel(() -> GogglesModel::new))
+    //        .lang("Aviator's Goggles")
+    //        .register();
 
     public static void register(){}
 }

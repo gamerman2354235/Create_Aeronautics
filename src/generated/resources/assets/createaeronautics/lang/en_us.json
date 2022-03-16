@@ -3,6 +3,7 @@
   "block.createaeronautics.levitite_casing": "Levitite Casing",
   "block.createaeronautics.propeller_bearing": "Propeller Bearing",
   "block.createaeronautics.stationary_potato_cannon": "Stationary Potato Cannon",
+  "block.createaeronautics.stirling_engine": "Stirling Engine",
   "block.createaeronautics.torsion_spring": "Torsion Spring",
   "death.attack.createaeronautics.stationary_potato_cannon": "%1$s was shot by a Stationary Potato Cannon",
   "death.attack.createaeronautics.stationary_potato_cannon.item": "%1$s was shot by a Stationary Potato Cannon using %2$s",

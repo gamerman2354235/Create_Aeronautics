@@ -4,6 +4,7 @@ import com.eriksonn.createaeronautics.CreateAeronautics;
 import com.eriksonn.createaeronautics.blocks.airship_assembler.AirshipAssemblerBlock;
 import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingBlock;
 import com.eriksonn.createaeronautics.blocks.stationary_potato_cannon.StationaryPotatoCannonBlock;
+import com.eriksonn.createaeronautics.blocks.stirling_engine.StirlingEngineBlock;
 import com.eriksonn.createaeronautics.blocks.torsion_spring.TorsionSpringBlock;
 import com.eriksonn.createaeronautics.groups.CAItemGroups;
 
@@ -73,6 +74,13 @@ public class CABlocks {
 
     public static final BlockEntry<CasingBlock> LEVITITE_CASING = REGISTRATE.block("levitite_casing", CasingBlock::new)
             .transform(BuilderTransformers.casing(CASpriteShifts.LEVITITE_CASING))
+            .register();
+    public static final BlockEntry<StirlingEngineBlock> STIRLING_ENGINE = REGISTRATE.block("stirling_engine", StirlingEngineBlock::new)
+            .initialProperties(SharedProperties::stone)
+            .properties(AbstractBlock.Properties::noOcclusion)
+            .tag(AllTags.AllBlockTags.SAFE_NBT.tag) //Dono what this tag means (contraption safe?).
+            .item()
+            .transform(customItemModel())
             .register();
 
     public static void register() {

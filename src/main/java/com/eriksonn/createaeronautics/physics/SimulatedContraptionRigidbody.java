@@ -77,7 +77,7 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         momentum=Vector3d.ZERO;
 
         principalRotation =Quaternion.ONE.copy();
-        angularMomentum=new Vector3d(0,800,0);
+        //angularMomentum=new Vector3d(0,800,0);
         //principialRotation=new Quaternion(1,2,3,4);
         //principialRotation.normalize();
         PhysicsUtils.generateLeviCivitaTensor();
@@ -338,7 +338,7 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
             angularMomentum=angularMomentum.scale(momentumMag);
 
         }
-        //angularMomentum=angularMomentum.scale(0.995);
+        angularMomentum=angularMomentum.scale(0.995);
         Vector3d v = angularVelocity.scale(PhysicsUtils.deltaTime*0.5f);
         Quaternion q = new Quaternion((float)v.x,(float)v.y,(float)v.z, 1.0f);
         q.mul(orientation);
