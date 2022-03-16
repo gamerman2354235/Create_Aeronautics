@@ -31,7 +31,7 @@ import static com.eriksonn.createaeronautics.contraptions.SubcontraptionMatrixTr
 @Mixin(value= ContraptionMatrices.class)
 public class ContraptionMatriciesMixin {
 
-    @Shadow @Final
+    @Shadow(remap = false) @Final
     private MatrixStack model;
 
     @Inject(locals = LocalCapture.CAPTURE_FAILHARD,remap=false,method = "setup", at = @At(remap=false,value = "INVOKE", target = "Lcom/simibubi/create/content/contraptions/components/structureMovement/AbstractContraptionEntity;doLocalTransforms(F[Lcom/mojang/blaze3d/matrix/MatrixStack;)V"))

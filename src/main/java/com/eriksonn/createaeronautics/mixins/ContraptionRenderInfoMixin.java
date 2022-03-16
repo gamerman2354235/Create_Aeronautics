@@ -56,7 +56,7 @@ public class ContraptionRenderInfoMixin {
     //    this.matrices=matrices;
     //}
     @Mutable
-    @Shadow
+    @Shadow(remap = false)
     private boolean visible;
     ///**
     // * @author Eriksonn

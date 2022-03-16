@@ -19,6 +19,7 @@ import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.repack.registrate.util.entry.BlockEntry;
 import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.Block;
 
 import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
 
@@ -72,8 +73,6 @@ public class CABlocks {
 
     public static final BlockEntry<CasingBlock> LEVITITE_CASING = REGISTRATE.block("levitite_casing", CasingBlock::new)
             .transform(BuilderTransformers.casing(CASpriteShifts.LEVITITE_CASING))
-            .item()
-            .transform(customItemModel())
             .register();
 
     public static void register() {
