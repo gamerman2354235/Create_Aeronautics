@@ -2,10 +2,9 @@ package com.eriksonn.createaeronautics.utils;
 
 import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingBlock;
 import com.simibubi.create.content.contraptions.base.DirectionalAxisKineticBlock;
-import com.simibubi.create.repack.registrate.builders.BlockBuilder;
+import com.simibubi.create.foundation.data.BlockStateGen;
 import com.simibubi.create.repack.registrate.providers.DataGenContext;
 import com.simibubi.create.repack.registrate.providers.RegistrateBlockstateProvider;
-import com.simibubi.create.repack.registrate.util.nullness.NonNullUnaryOperator;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.state.properties.BlockStateProperties;
@@ -15,8 +14,6 @@ import net.minecraftforge.client.model.generators.ModelFile;
 
 import java.util.function.Function;
 
-import static com.simibubi.create.foundation.data.BlockStateGen.directionalAxisBlock;
-
 /**
  * Useful functions for auto-generating blockstates.
  * @author FortressNebula
@@ -24,8 +21,13 @@ import static com.simibubi.create.foundation.data.BlockStateGen.directionalAxisB
 public class BlockStateUtils {
 
     public static <T extends DirectionalAxisKineticBlock> void directionalPoweredAxisBlockstate(DataGenContext<Block, T> ctx, RegistrateBlockstateProvider prov) {
-        directionalAxisBlock(ctx, prov, (blockState, vertical) -> prov.models()
+        BlockStateGen.directionalAxisBlock(ctx, prov, (blockState, vertical) -> prov.models()
                 .getExistingFile(prov.modLoc("block/" + ctx.getName() + "/" + (vertical ? "vertical" : "horizontal") + (blockState.getValue(BlockStateProperties.POWERED) ? "_powered" : ""))));
+    }
+
+    public static <T extends Block> void horizontalFacingLitBlockstate(DataGenContext<Block, T> ctx, RegistrateBlockstateProvider prov) {
+        prov.horizontalBlock(ctx.get(), blockState -> prov.models()
+                .getExistingFile(prov.modLoc("block/" + ctx.getName() + "/block" /*+ (blockState.getValue(BlockStateProperties.LIT) ? "_lit" : "")*/)));
     }
 
     public static <T extends Block> void torsionSpringBlockstate(DataGenContext<Block, T> ctx, RegistrateBlockstateProvider prov,
