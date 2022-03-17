@@ -1,14 +1,11 @@
 package com.eriksonn.createaeronautics.blocks.propeller_bearing;
 
-import com.eriksonn.createaeronautics.blocks.stationary_potato_cannon.StationaryPotatoCannonTileEntity;
 import com.eriksonn.createaeronautics.particle.PropellerAirParticleData;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.MechanicalBearingTileEntity;
-
-import com.simibubi.create.content.contraptions.particle.AirParticleData;
 import com.simibubi.create.foundation.gui.AllIcons;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.simibubi.create.foundation.tileEntity.behaviour.scrollvalue.INamedIconOptions;
@@ -17,7 +14,6 @@ import com.simibubi.create.foundation.utility.Lang;
 import com.simibubi.create.foundation.utility.ServerSpeedProvider;
 import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.block.BlockState;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntityType;
@@ -33,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
+public class PropellerBearingTileEntity extends MechanicalBearingTileEntity implements MecanicalBearingTileEntityExtension{
     public ScrollOptionBehaviour<PropellerBearingTileEntity.RotationDirection> movementDirection;
     protected float lastGeneratedSpeed;
     public List<BlockPos> sailPositions;
@@ -256,6 +252,11 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
             return;
         level.setBlockAndUpdate(worldPosition, getBlockState().setValue(PropellerBearingBlock.DIRECTION, direction));
         notifyUpdate();
+    }
+
+    @Override
+    public boolean isPropeller() {
+        return true;
     }
 
     static enum RotationDirection implements INamedIconOptions {
