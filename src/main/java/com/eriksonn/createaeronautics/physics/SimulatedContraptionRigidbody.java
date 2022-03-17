@@ -146,6 +146,7 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         entity.setDeltaMovement(globalVelocity.scale(PhysicsUtils.deltaTime));
         entity.move(globalVelocity.x*PhysicsUtils.deltaTime,globalVelocity.y*PhysicsUtils.deltaTime,globalVelocity.z*PhysicsUtils.deltaTime);
     }
+
     public void readAdditional(CompoundNBT compound, boolean spawnPacket) {
 
         orientation = readQuaternion(compound.getCompound("Orientation"));

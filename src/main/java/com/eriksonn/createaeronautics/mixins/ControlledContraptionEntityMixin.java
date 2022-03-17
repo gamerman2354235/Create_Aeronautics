@@ -8,6 +8,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(ControlledContraptionEntity.class)
 public interface ControlledContraptionEntityMixin {
 
-    @Invoker("makeStructureTransform")
+    @Invoker(value = "makeStructureTransform", remap = false)
     public StructureTransform invokeMakeStructureTransform();
 }

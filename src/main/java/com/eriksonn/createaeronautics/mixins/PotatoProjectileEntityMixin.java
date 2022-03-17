@@ -1,6 +1,6 @@
 package com.eriksonn.createaeronautics.mixins;
 
-import com.eriksonn.createaeronautics.blocks.stationary_potato_cannon.PotatoProjectileEntityFix;
+import com.eriksonn.createaeronautics.utils.PotatoProjectileEntityExtension;
 import com.eriksonn.createaeronautics.blocks.stationary_potato_cannon.StationaryPotatoCannonProjectileEntity;
 import com.simibubi.create.content.curiosities.weapons.PotatoProjectileEntity;
 import net.minecraft.util.DamageSource;
@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PotatoProjectileEntity.class)
-public class PotatoProjectileEntityMixin implements PotatoProjectileEntityFix {
+public class PotatoProjectileEntityMixin implements PotatoProjectileEntityExtension {
     public boolean isFromStationaryPotatoCannon = false;
 
     /**

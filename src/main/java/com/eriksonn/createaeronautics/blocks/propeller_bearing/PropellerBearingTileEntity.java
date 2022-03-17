@@ -40,6 +40,7 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
     float rotationSpeed=0;
     float disassemblyTimer;
     boolean disassemblySlowdown=false;
+
     public PropellerBearingTileEntity(TileEntityType<? extends MechanicalBearingTileEntity> type) {
         super(type);
         sailPositions=new ArrayList<>();
@@ -178,12 +179,17 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
         super.assemble();
         findSails();
     }
+
     @Override
     public void disassemble()
     {
-
         super.disassemble();
     }
+
+    public void setAssembleNextTick(boolean value) {
+        assembleNextTick = value;
+    }
+
     public void startDisassemblySlowdown()
     {
         if(!disassemblySlowdown) {
