@@ -617,7 +617,7 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     }
 
     public Vector3d getVelocityAtPoint(Vector3d pos) {
-        return globalVelocity.add(pos.cross(angularVelocity));
+        return globalVelocity.add(rotate(pos.cross(angularVelocity)));
     }
 
     public Vector3d getAngularVelocity() {

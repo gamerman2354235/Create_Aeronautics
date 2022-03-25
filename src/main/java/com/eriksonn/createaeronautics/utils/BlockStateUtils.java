@@ -5,6 +5,7 @@ import com.simibubi.create.content.contraptions.base.DirectionalAxisKineticBlock
 import com.simibubi.create.foundation.data.BlockStateGen;
 import com.simibubi.create.repack.registrate.providers.DataGenContext;
 import com.simibubi.create.repack.registrate.providers.RegistrateBlockstateProvider;
+import net.minecraft.block.AbstractFurnaceBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.state.properties.BlockStateProperties;
@@ -27,7 +28,7 @@ public class BlockStateUtils {
 
     public static <T extends Block> void horizontalFacingLitBlockstate(DataGenContext<Block, T> ctx, RegistrateBlockstateProvider prov) {
         prov.horizontalBlock(ctx.get(), blockState -> prov.models()
-                .getExistingFile(prov.modLoc("block/" + ctx.getName() + "/block" /*+ (blockState.getValue(BlockStateProperties.LIT) ? "_lit" : "")*/)));
+                .getExistingFile(prov.modLoc("block/" + ctx.getName() + "/block" + (blockState.getValue(AbstractFurnaceBlock.LIT) ? "_lit" : ""))));
     }
 
     public static <T extends Block> void torsionSpringBlockstate(DataGenContext<Block, T> ctx, RegistrateBlockstateProvider prov,
