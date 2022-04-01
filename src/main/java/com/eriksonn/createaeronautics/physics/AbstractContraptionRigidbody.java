@@ -1,5 +1,7 @@
 package com.eriksonn.createaeronautics.physics;
 
+import com.eriksonn.createaeronautics.physics.collision.shape.ICollisionShape;
+import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.Contraption;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.SailBlock;
 import net.minecraft.block.BlockState;
@@ -8,6 +10,7 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.gen.feature.template.Template;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractContraptionRigidbody implements IRigidbody{
@@ -30,6 +33,8 @@ public abstract class AbstractContraptionRigidbody implements IRigidbody{
                 localMass+=blockMass;
             }
         }
+
+
         localCenterOfMass=localCenterOfMass.scale(1.0/localMass);
         for (Map.Entry<BlockPos, Template.BlockInfo> entry : contraption.getBlocks().entrySet()) {
             if (!entry.getValue().state.isAir()) {
@@ -58,4 +63,19 @@ public abstract class AbstractContraptionRigidbody implements IRigidbody{
     }
     public double getLocalMass() { return localMass; }
     public Vector3d getLocalCenterOfMass(){ return localCenterOfMass; }
+
+    //#region Collision
+    HashMap<BlockPos, List<ICollisionShape>> collisionShapes = new HashMap<>();
+
+    public HashMap<BlockPos, List<ICollisionShape>> getCollisionShapes() {
+        return collisionShapes;
+    }
+
+    public void setCollisionShapes(HashMap<BlockPos, List<ICollisionShape>> collisionShapes) {
+        this.collisionShapes = collisionShapes;
+    }
+    //#endregion
+
+    public abstract AbstractContraptionEntity getContraption();
+    abstract public Vector3d getPlotOffset();
 }

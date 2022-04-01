@@ -6,9 +6,18 @@ import com.eriksonn.createaeronautics.contraptions.AirshipContraptionEntity;
 import com.eriksonn.createaeronautics.contraptions.AirshipManager;
 import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingTileEntity;
 import com.eriksonn.createaeronautics.index.CABlocks;
+import com.eriksonn.createaeronautics.index.CAConfig;
 import com.eriksonn.createaeronautics.index.CATileEntities;
 import com.eriksonn.createaeronautics.mixins.ControlledContraptionEntityMixin;
 import com.eriksonn.createaeronautics.particle.PropellerAirParticleData;
+import com.eriksonn.createaeronautics.physics.collision.detection.Contact;
+import com.eriksonn.createaeronautics.physics.collision.detection.ICollisionDetector;
+import com.eriksonn.createaeronautics.physics.collision.detection.impl.GJKCollisionDetector;
+import com.eriksonn.createaeronautics.physics.collision.detection.impl.SphereAABBCollisionDetector;
+import com.eriksonn.createaeronautics.physics.collision.detection.impl.SphereCollisionDetector;
+import com.eriksonn.createaeronautics.physics.collision.resolution.IIterativeManifoldSolver;
+import com.eriksonn.createaeronautics.physics.collision.resolution.SequentialManifoldSolver;
+import com.eriksonn.createaeronautics.physics.collision.shape.MeshCollisionShapeGenerator;
 import com.simibubi.create.AllTileEntities;
 import com.simibubi.create.content.contraptions.components.fan.EncasedFanTileEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
@@ -30,12 +39,14 @@ import net.minecraft.world.gen.feature.template.Template;
 
 import java.util.*;
 
+import static com.eriksonn.createaeronautics.physics.PhysicsUtils.deltaTime;
+
 
 public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody {
     AirshipContraptionEntity entity;
     AirshipContraption contraption;
     public Quaternion orientation;
-    Vector3d momentum=Vector3d.ZERO;
+    public Vector3d momentum=Vector3d.ZERO;
 
     Vector3d centerOfMass=Vector3d.ZERO;
     double[][] inertiaTensor=new double[3][3];
@@ -68,6 +79,9 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     Vector3d inverseInertiaTensorJ;
     Vector3d inverseInertiaTensorK;
 
+    // manifold solver
+    IIterativeManifoldSolver manifoldSolver = new SequentialManifoldSolver();
+
     public SimulatedContraptionRigidbody(AirshipContraptionEntity entity)
     {
         orientation=Quaternion.ONE.copy();
@@ -78,7 +92,7 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         momentum=Vector3d.ZERO;
 
         principalRotation =Quaternion.ONE.copy();
-        //angularMomentum=new Vector3d(0,800,0);
+
         //principialRotation=new Quaternion(1,2,3,4);
         //principialRotation.normalize();
         PhysicsUtils.generateLeviCivitaTensor();
@@ -93,25 +107,26 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
             mergeMassFromSubContraptions();
 
             updateLevititeBuoyancy();
+            initCollision();
             isInitialized=true;
-            updateRotation();
-            //applyImpulse(new Vector3d(0,0,1),new Vector3d(0,7,0));
-            Vector3d V = getVelocityAtPoint(new Vector3d(0,0,1));
-            Vector3d V2 = V.cross(V);
+
         }
     }
     public void tick()
     {
+
+         addGlobalForce(new Vector3d(0, -4.0 * getMass(), 0), Vector3d.ZERO);
         contraption=entity.airshipContraption;
 
         if(contraption==null)
             return;
-        generateMassDependentParameters(contraption,Vector3d.ZERO);
 
+//        centerOfMass=Vector3d.ZERO;
+        generateMassDependentParameters(contraption,Vector3d.ZERO);
         mergeMassFromSubContraptions();
 
-        //updateCenterOfMass();
         tryInit();
+
 
         //orientation=new Quaternion(0,0,0.3827f,0.9239f);
         //orientation.normalize();
@@ -122,6 +137,7 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         //updateInertia();
         updateTileEntityInteractions();
         //centerOfMass=Vector3d.ZERO;
+      
         totalAccumulatedBuoyancy =0;
 
         totalAccumulatedBuoyancy += levititeBuoyancyController.apply(orientation,entity.position());
@@ -130,7 +146,7 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         globalForce=globalForce.add(0,-totalAccumulatedBuoyancy,0);
         //globalForce=globalForce.add(0,-PhysicsUtils.gravity*mass,0);
 
-        momentum = momentum.add(rotateQuat(localForce.scale(PhysicsUtils.deltaTime),orientation)).add(globalForce.scale(PhysicsUtils.deltaTime));
+        momentum = momentum.add(rotateQuat(localForce.scale(deltaTime),orientation)).add(globalForce.scale(deltaTime));
         globalForce = Vector3d.ZERO;
         localForce = Vector3d.ZERO;
 
@@ -155,14 +171,34 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
 
 
         CurrentAxisAngle+=0.01f;
+        angularMomentum=angularMomentum.scale(0.995);
 
-//        orientation=new Quaternion(s*CurrentAxis.x(),s*CurrentAxis.y(),s*CurrentAxis.z(),c);
+        List<Contact> contacts = findContacts();
+
+        manifoldSolver.preSolve(contacts);
+        for (int i = 0; i < CAConfig.MAX_COLLISION_ITERATIONS.get(); i++) {
+            manifoldSolver.solve(this, contacts, deltaTime);
+        }
+
+        endPhysicsTick();
+
+    }
+
+    public void endPhysicsTick() {
+        Vector3d v = angularVelocity.scale(deltaTime*0.5f);
+        Quaternion q = new Quaternion((float)v.x,(float)v.y,(float)v.z, 1.0f);
+        q.mul(orientation);
+        orientation=q;
+        orientation.normalize();
+
+        localTorque =Vector3d.ZERO;
+        globalTorque =Vector3d.ZERO;
 
 
         entity.quat=orientation.copy();
-        entity.velocity=globalVelocity.scale(PhysicsUtils.deltaTime);
-        entity.setDeltaMovement(globalVelocity.scale(PhysicsUtils.deltaTime));
-        entity.move(globalVelocity.x*PhysicsUtils.deltaTime,globalVelocity.y*PhysicsUtils.deltaTime,globalVelocity.z*PhysicsUtils.deltaTime);
+        entity.velocity=globalVelocity.scale(deltaTime);
+        entity.setDeltaMovement(globalVelocity.scale(deltaTime));
+        entity.move(globalVelocity.x* deltaTime,globalVelocity.y* deltaTime,globalVelocity.z* deltaTime);
     }
 
     public void readAdditional(CompoundNBT compound, boolean spawnPacket) {
@@ -214,6 +250,7 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         SubcontraptionRigidbody rigidbody = new SubcontraptionRigidbody(newEntity,this);
         subcontraptionRigidbodyMap.put(uuid, rigidbody);
         rigidbody.generateMassDependentParameters(newEntity.getContraption(),Vector3d.ZERO);
+        generateCollisionShapes(rigidbody);
     }
     public void removeSubContraption(UUID uuid)
     {
@@ -221,7 +258,7 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     }
     public Quaternion getPartialOrientation(float partialTick)
     {
-        Vector3d v = angularVelocity.scale(partialTick*PhysicsUtils.deltaTime*0.5f);
+        Vector3d v = angularVelocity.scale(partialTick* deltaTime*0.5f);
         Quaternion q = new Quaternion((float)v.x,(float)v.y,(float)v.z, 1.0f);
         q.mul(orientation);
         q.normalize();
@@ -330,8 +367,8 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         localTorque = localTorque.add(rotateQuatReverse(globalTorque,orientation));
 
         //torque gives a change of angular momentum over time
-        angularMomentum=angularMomentum.add(localTorque.scale(PhysicsUtils.deltaTime));
-        double momentumMag = angularMomentum.length();
+        angularMomentum=angularMomentum.add(localTorque.scale(deltaTime));
+
         //rotate the angular momentum into the principal reference frame and scale by the inverse of the inertia
         //tensor to get angular velocity in the principal frame
         Vector3d principalVelocity = rotateQuat(multiplyInertiaInverse(angularMomentum), principalRotation);
@@ -346,16 +383,31 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         //rotate the torque back to the contraption grid
         Vector3d extraTorque = rotateQuatReverse(principalTorque, principalRotation);
 
-        angularMomentum = angularMomentum.add(extraTorque.scale(PhysicsUtils.deltaTime));
+        double momentumMag = angularMomentum.length();
 
-        angularVelocity=multiplyInertiaInverse(angularMomentum);
+        angularMomentum = angularMomentum.add(extraTorque.scale(deltaTime));
 
         if (angularMomentum.lengthSqr() > 0)//reset the length to maintain conservation of momentum
         {
             angularMomentum=angularMomentum.normalize();
             angularMomentum=angularMomentum.scale(momentumMag);
-
         }
+
+        angularVelocity = multiplyInertiaInverse(angularMomentum);
+    }
+
+    List<Contact> findContacts() {
+        List<Contact> contacts = new ArrayList<>();
+
+        // to handle collisions, we need to test every collision shape against the blocks they could collide with
+        // first let's call an overload on each subcontraption and this rigidbody to prevent duplicate code
+        findContacts(this, contacts);
+
+        for (SubcontraptionRigidbody subcontraption : subcontraptionRigidbodyMap.values()) {
+            // repeat for number of iterations
+            findContacts(subcontraption, contacts);
+        }
+
         angularMomentum=angularMomentum.scale(0.995);
         Vector3d v = angularVelocity.scale(PhysicsUtils.deltaTime*0.5f);
         Quaternion q = new Quaternion((float)v.x,(float)v.y,(float)v.z, 1.0f);
@@ -363,9 +415,52 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
         orientation=q;
         orientation.normalize();
 
-        localTorque =Vector3d.ZERO;
-        globalTorque =Vector3d.ZERO;
+
+        return contacts;
     }
+
+    ICollisionDetector collisionDetector;
+
+
+    void findContacts(AbstractContraptionRigidbody rb, List<Contact> contacts) {
+        collisionDetector.solve(rb, contacts);
+    }
+
+    void initCollision() {
+
+        // Set collision detector based off of quality settings
+        switch (CAConfig.COLLISION_QUALITY.get()) {
+            case GJKEPA:
+                collisionDetector = new GJKCollisionDetector();
+                break;
+            case SPHERE_AABB:
+                collisionDetector = new SphereAABBCollisionDetector();
+                break;
+            case SPHERE:
+                collisionDetector = new SphereCollisionDetector();
+                break;
+        }
+
+        // generate collision shapes for all the rigid bodies
+        generateCollisionShapes(this);
+        for(AbstractContraptionRigidbody rb : subcontraptionRigidbodyMap.values()) {
+            generateCollisionShapes(rb);
+        }
+    }
+
+    void generateCollisionShapes(AbstractContraptionRigidbody rb) {
+        MeshCollisionShapeGenerator generator = new MeshCollisionShapeGenerator(rb);
+
+        AbstractContraptionEntity contraption = rb.getContraption();
+
+        rb.setCollisionShapes(generator.generateShapes(contraption));
+    }
+
+    @Override
+    public AbstractContraptionEntity getContraption() {
+        return entity;
+    }
+
     void updateSpectralDecomposition()
     {
         // attempts to perform spectral decomposition on the local inertia tensor = A
@@ -635,11 +730,13 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     }
 
     public Vector3d toLocal(Vector3d globalPoint) {
-        return rotateQuatReverse(globalPoint.subtract(entity.position()).subtract(centerOfMass),orientation).add(centerOfMass);
+        Vector3d rotationOffset = VecHelper.getCenterOf(BlockPos.ZERO);
+        return rotateQuatReverse(globalPoint.subtract(entity.position()).subtract(rotationOffset),orientation);
     }
 
     public Vector3d toGlobal(Vector3d localPoint) {
-        return rotateQuat(localPoint.subtract(centerOfMass),orientation).add(centerOfMass).add(entity.position());
+        Vector3d rotationalOffset = VecHelper.getCenterOf(BlockPos.ZERO);
+        return rotateQuat(localPoint.subtract(rotationalOffset).subtract(centerOfMass),orientation).add(rotationalOffset).add(entity.position());
     }
 
     public Vector3d getVelocity() {
@@ -647,9 +744,10 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     }
 
     public Vector3d getVelocityAtPoint(Vector3d pos) {
-        return globalVelocity.add(rotate(pos.cross(angularVelocity)));
-    }
 
+        return globalVelocity.add(rotate(pos.cross(angularVelocity)));
+
+    }
     public Vector3d getAngularVelocity() {
         return angularVelocity;
     }
@@ -666,13 +764,18 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     }
 
 
-    public void addVelocity(Vector3d pos, Vector3d velocity) {
+    public void applyImpulse(Vector3d pos, Vector3d impulse) {
+        momentum = momentum.add(impulse);
+        globalVelocity = momentum.scale(1.0 / getMass());
 
+        Vector3d additionalAngularMomentum = rotateInverse(impulse).cross(pos);
+        angularMomentum = angularMomentum.add(additionalAngularMomentum);
+        updateRotation();
     }
 
 
-    public void addGlobalVelocity(Vector3d pos, Vector3d velocity) {
-
+    public void applyGlobalImpulse(Vector3d pos, Vector3d impulse) {
+        applyImpulse(toLocal(pos), impulse);
     }
 
     Vector3d getLocalVelocityAtPosition(Vector3d pos)
@@ -720,7 +823,7 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
             entity.level.addParticle(new PropellerAirParticleData(new Vector3i(vector3d.x, vector3d.y, vector3d.z)), pPos.x, pPos.y, pPos.z, veloVector.x, veloVector.y, veloVector.z);
         }
 
-        return direction.scale(magnitude);
+        return direction.scale(-magnitude);
     }
 
     Vector3d getFacingVector(BlockState state)
@@ -732,7 +835,10 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     {
         Vector3d p=new Vector3d(pos.getX(),pos.getY(),pos.getZ());
         return p.subtract(centerOfMass);
-
+    }
+    Vector3d getLocalCoordinate(Vector3d pos)
+    {
+        return pos.subtract(centerOfMass);
     }
     class BuoyancyController
     {

@@ -9,6 +9,8 @@ import com.eriksonn.createaeronautics.network.NetworkMain;
 import com.eriksonn.createaeronautics.network.packet.*;
 import com.eriksonn.createaeronautics.physics.SimulatedContraptionRigidbody;
 import com.eriksonn.createaeronautics.physics.SubcontraptionRigidbody;
+import com.eriksonn.createaeronautics.physics.collision.shape.ICollisionShape;
+import com.eriksonn.createaeronautics.physics.collision.shape.MeshCollisionShape;
 import com.eriksonn.createaeronautics.utils.AbstractContraptionEntityExtension;
 import com.eriksonn.createaeronautics.utils.Matrix3dExtension;
 import com.eriksonn.createaeronautics.world.FakeAirshipClientWorld;
@@ -86,6 +88,10 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
     public AirshipContraptionEntity(EntityType<?> type, World world) {
         super(type, world);
         simulatedRigidbody = new SimulatedContraptionRigidbody(this);
+
+        // testing
+//        this.simulatedRigidbody.angularMomentum = new Vector3d(0, 0, 40);
+
         System.out.println("New airship entity");
     }
 
@@ -126,12 +132,12 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
             profiler.startTick();
             fakeClientWorld.tick(() -> true);
 
-
             for (ControlledContraptionEntity contraptionEntity : subContraptions.values()) {
                 contraptionEntity.tick();
             }
             fakeClientWorld.tickEntities();
 
+            fakeClientWorld.tickBlockEntities();
             profiler.endTick();
 
             if (invalid) {
@@ -162,28 +168,17 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
         //for(Map.Entry<UUID, SubcontraptionRigidbody> entry : simulatedRigidbody.subcontraptionRigidbodyMap.entrySet())
         //{
         //    SubcontraptionRigidbody rigidbody = entry.getValue();
-        //    Vector3d particlePos = rigidbody.toGlobal(new Vector3d(0,0,0));
-        //    level.addParticle(new RedstoneParticleData(1,1,1,1),particlePos.x,particlePos.y,particlePos.z,0,0,0);
-        //}
+//        x
 
-        if(level.isClientSide && false) {
-            CompoundNBT tag = this.entityData.get(physicsDataAccessor);
-            if(tag.contains("velocity")) {
-                simulatedRigidbody.globalVelocity = simulatedRigidbody.arrayToVec(readDoubleArray(tag, "velocity"));
-                //simulatedRigidbody.angularVelocity = simulatedRigidbody.arrayToVec(readDoubleArray(tag, "angularVelocity"));
-                simulatedRigidbody.angularMomentum = simulatedRigidbody.arrayToVec(readDoubleArray(tag, "angularMomentum"));
-                //simulatedRigidbody.momentum = simulatedRigidbody.arrayToVec(readDoubleArray(tag, "momentum"));
-                simulatedRigidbody.orientation = simulatedRigidbody.arrayToQuat(readDoubleArray(tag, "orientation"));
-            }
-        }
+
+        //}
 
 //        if(level.isClientSide)
         
 
 
-        //Vector3d particlePos = toGlobalVector(new Vector3d(0,0,0),0);
-        //level.addParticle(new RedstoneParticleData(1,1,1,1),particlePos.x,particlePos.y,particlePos.z,0,0,0);
-        //this.getContraption().getContraptionWorld().tickBlockEntities();
+//        Vector3d particlePos = simulatedRigidbody.toGlobal(simulatedRigidbody.toLocal(simulatedRigidbody.toGlobal(new Vector3d(1,1,1))));
+//        level.addParticle(new RedstoneParticleData(1,1,1,1),particlePos.x,particlePos.y,particlePos.z,0,0,0);
 
     }
 
@@ -212,17 +207,20 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
 
     @Override
     public void onSyncedDataUpdated(DataParameter<?> pKey) {
-        if (pKey == physicsDataAccessor) {
+        if (pKey.equals(physicsDataAccessor)) {
             CompoundNBT tag = this.entityData.get((DataParameter<CompoundNBT>) pKey);
 
-
+            simulatedRigidbody.momentum = simulatedRigidbody.arrayToVec(readDoubleArray(tag, "momentum"));
+            simulatedRigidbody.angularMomentum = simulatedRigidbody.arrayToVec(readDoubleArray(tag, "angularMomentum"));
+            simulatedRigidbody.orientation = simulatedRigidbody.arrayToQuat(readDoubleArray(tag, "orientation"));
         }
     }
 
     @Override
     public void onRemovedFromWorld() {
         subContraptions.forEach((uuid, contraptionEntity) -> {
-            contraptionEntity.disassemble();
+            contraptionEntity.getContraption().addBlocksToWorld(contraptionEntity.level, ((ControlledContraptionEntityMixin)contraptionEntity).invokeMakeStructureTransform());
+            contraptionEntity.remove();
             serverDestroySubContraption(contraptionEntity);
         });
         super.onRemovedFromWorld();
@@ -246,10 +244,8 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
         }
 
         CompoundNBT tag = new CompoundNBT();
-        putDoubleArray(tag, "velocity", simulatedRigidbody.vecToArray(simulatedRigidbody.globalVelocity));
-        //putDoubleArray(tag, "angularVelocity", simulatedRigidbody.vecToArray(simulatedRigidbody.angularVelocity));
-        //putDoubleArray(tag, "angularMomentum", simulatedRigidbody.vecToArray(simulatedRigidbody.angularVelocity));
-        //putDoubleArray(tag, "momentum", simulatedRigidbody.vecToArray(simulatedRigidbody.angularVelocity));
+        putDoubleArray(tag, "angularMomentum", simulatedRigidbody.vecToArray(simulatedRigidbody.angularMomentum));
+        putDoubleArray(tag, "momentum", simulatedRigidbody.vecToArray(simulatedRigidbody.momentum));
         putDoubleArray(tag, "orientation", simulatedRigidbody.quatToArray(simulatedRigidbody.orientation));
         this.entityData.set(physicsDataAccessor, tag);
 

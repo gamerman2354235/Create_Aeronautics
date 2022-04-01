@@ -28,7 +28,7 @@ public interface IRigidbody {
     //#region Interaction
     void addForce(Vector3d pos,Vector3d force);
     void addGlobalForce(Vector3d pos,Vector3d force);
-    void addVelocity(Vector3d pos,Vector3d velocity);
-    void addGlobalVelocity(Vector3d pos,Vector3d velocity);
+    void applyImpulse(Vector3d pos, Vector3d velocity);
+    void applyGlobalImpulse(Vector3d pos, Vector3d velocity);
     //#endregion
 }
