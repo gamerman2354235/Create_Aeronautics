@@ -1,10 +1,13 @@
 package com.eriksonn.createaeronautics.physics;
 
 import com.simibubi.create.content.contraptions.components.structureMovement.Contraption;
+import com.simibubi.create.content.contraptions.components.structureMovement.bearing.SailBlock;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.gen.feature.template.Template;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractContraptionRigidbody implements IRigidbody{
@@ -12,6 +15,7 @@ public abstract class AbstractContraptionRigidbody implements IRigidbody{
     public Vector3d localCenterOfMass=Vector3d.ZERO;
     public double[][] localInertiaTensor=new double[3][3];
     public double localMass;
+    public Map<BlockPos, BlockState> sails = new HashMap<>();
     public void generateMassDependentParameters(Contraption contraption,Vector3d offset)
     {
         localMass=0;
@@ -40,6 +44,15 @@ public abstract class AbstractContraptionRigidbody implements IRigidbody{
                     for (int j = 0; j < 3; j++)
                         localInertiaTensor[i][j]-=blockMass*posArray[i]* posArray[j];
                 for (int i = 0; i < 3; i++) localInertiaTensor[i][i] += blockMass * pos.lengthSqr();
+            }
+        }
+    }
+    public void findSails(Contraption contraption)
+    {
+        sails.clear();
+        for (Map.Entry<BlockPos, Template.BlockInfo> entry : contraption.getBlocks().entrySet()) {
+            if(entry.getValue().state.getBlock() instanceof SailBlock) {
+                sails.put(entry.getKey(),entry.getValue().state);
             }
         }
     }

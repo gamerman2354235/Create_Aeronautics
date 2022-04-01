@@ -52,7 +52,7 @@ public class StirlingEngineBlock extends HorizontalKineticBlock {
     public void onRemove(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.hasTileEntity() && state.getBlock() != newState.getBlock()) {
             StirlingEngineTileEntity te = (StirlingEngineTileEntity) worldIn.getBlockEntity(pos);
-            if (!te.currentStack.isEmpty())
+            if (te !=null&&!te.currentStack.isEmpty())
                 InventoryHelper.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), te.currentStack);
             worldIn.removeBlockEntity(pos);
         }

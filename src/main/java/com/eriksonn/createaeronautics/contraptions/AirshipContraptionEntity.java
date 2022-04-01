@@ -72,7 +72,7 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
     public AirshipContraption airshipContraption;
     public int plotId = 0;
     public SimulatedContraptionRigidbody simulatedRigidbody;
-    public Map<BlockPos, BlockState> sails;
+
     public Map<UUID, ControlledContraptionEntity> subContraptions = new HashMap<>();
     public Vector3d centerOfMassOffset = Vector3d.ZERO;
     public static final DataParameter<CompoundNBT> physicsDataAccessor = EntityDataManager.defineId(AirshipContraptionEntity.class, DataSerializers.COMPOUND_TAG);
@@ -85,7 +85,6 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
 
     public AirshipContraptionEntity(EntityType<?> type, World world) {
         super(type, world);
-        sails = new HashMap<>();
         simulatedRigidbody = new SimulatedContraptionRigidbody(this);
         System.out.println("New airship entity");
     }
