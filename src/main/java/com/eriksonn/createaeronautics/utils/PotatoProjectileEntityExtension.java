@@ -1,9 +1,9 @@
-package com.eriksonn.createaeronautics.blocks.stationary_potato_cannon;
+package com.eriksonn.createaeronautics.utils;
 
 /**
  * This is needed to add a custom function to the PotatoProjectileEntity class.
  * @author FortressNebula
  */
-public interface PotatoProjectileEntityFix {
+public interface PotatoProjectileEntityExtension {
     void setIsFromStationaryPotatoCannon(boolean value);
 }

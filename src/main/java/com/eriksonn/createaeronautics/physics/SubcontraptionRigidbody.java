@@ -34,18 +34,18 @@ public class SubcontraptionRigidbody extends AbstractContraptionRigidbody {
 
 
     public Vector3d rotate(Vector3d point) {
-        return parentRigidbody.rotate(entity.applyRotation(point,0));
+        return parentRigidbody.rotate(entity.applyRotation(point,1));
     }
 
     public Vector3d rotateInverse(Vector3d point) {
-        return entity.reverseRotation(parentRigidbody.rotateInverse(point),0);
+        return entity.reverseRotation(parentRigidbody.rotateInverse(point),1);
     }
     public Vector3d rotateLocal(Vector3d point) {
-        return entity.applyRotation(point,0);
+        return entity.applyRotation(point,1);
     }
 
     public Vector3d rotateLocalInverse(Vector3d point) {
-        return entity.reverseRotation(point,0);
+        return entity.reverseRotation(point,1);
     }
 
     public Vector3d toLocal(Vector3d globalPoint) {
@@ -77,7 +77,7 @@ public class SubcontraptionRigidbody extends AbstractContraptionRigidbody {
 
 
     public void addForce(Vector3d pos, Vector3d force) {
-        parentRigidbody.addForce(toParent(pos),entity.applyRotation(force,0));
+        parentRigidbody.addForce(toParent(pos),entity.applyRotation(force,1));
     }
 
 
@@ -88,21 +88,20 @@ public class SubcontraptionRigidbody extends AbstractContraptionRigidbody {
 
     public void applyImpulse(Vector3d pos, Vector3d velocity) {
         parentRigidbody.applyImpulse(toParent(pos),entity.reverseRotation(velocity,0));
-    }
 
 
     public void applyGlobalImpulse(Vector3d pos, Vector3d velocity) {
         parentRigidbody.applyGlobalImpulse(toParent(pos),velocity);
     }
-    Vector3d toParent(Vector3d point)
+    public Vector3d toParent(Vector3d point)
     {
         Vector3d entityOffsetPosition = entity.position().subtract(parentRigidbody.getPlotOffset());
-        return entity.applyRotation(point,0).add(entityOffsetPosition);
+        return entity.applyRotation(point,1).add(entityOffsetPosition);
     }
-    Vector3d fromParent(Vector3d point)
+    public Vector3d fromParent(Vector3d point)
     {
         Vector3d entityOffsetPosition = entity.position().subtract(parentRigidbody.getPlotOffset());
-        return entity.reverseRotation(point.subtract(entityOffsetPosition),0);
+        return entity.reverseRotation(point.subtract(entityOffsetPosition),1);
     }
 
     @Override

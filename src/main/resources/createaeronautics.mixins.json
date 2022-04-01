@@ -5,6 +5,7 @@
   "refmap": "createaeronautics.refmap.json",
   "mixins": [
     "AbstractContraptionEntityMixin",
+    "BearingContraptionMixin",
     "ClientWorldAccessorMixin",
     "ContraptionColliderMixin",
     "ContraptionHolderAccessor",
@@ -15,7 +16,7 @@
     "ControlledContraptionEntityMixin",
     "DimensionTypeMixin",
     "Matrix3dAccessor",
-    "MechanicalBearingTileEntityAccessor",
+    "MechanicalBearingTileEntityMixin",
     "PotatoProjectileEntityMixin",
     "RedstoneLinkNetworkMixin",
     "RotationPropagatorMixin",

@@ -29,7 +29,10 @@ public class CAShapes {
             .add(2, 4, 2, 14, 12, 14)
             .add(4, 12, 4, 12, 13, 12)
             .add(6, 13, 6,10, 16, 10)
-            .forAxis();
+            .forAxis(),
+    STIRLING_ENGINE = shape(0,0,0,16,2,16)
+            .add(3,2,0,13,12,16)
+            .forDirectional(Direction.NORTH);
     private static CAShapes.Builder shape(VoxelShape shape) {
         return new CAShapes.Builder(shape);
     }

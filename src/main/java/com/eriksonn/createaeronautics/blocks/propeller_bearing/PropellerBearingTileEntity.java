@@ -1,14 +1,11 @@
 package com.eriksonn.createaeronautics.blocks.propeller_bearing;
 
-import com.eriksonn.createaeronautics.blocks.stationary_potato_cannon.StationaryPotatoCannonTileEntity;
 import com.eriksonn.createaeronautics.particle.PropellerAirParticleData;
 import com.simibubi.create.AllTags;
 import com.simibubi.create.Create;
 import com.simibubi.create.content.contraptions.components.structureMovement.ControlledContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.BearingContraption;
 import com.simibubi.create.content.contraptions.components.structureMovement.bearing.MechanicalBearingTileEntity;
-
-import com.simibubi.create.content.contraptions.particle.AirParticleData;
 import com.simibubi.create.foundation.gui.AllIcons;
 import com.simibubi.create.foundation.tileEntity.TileEntityBehaviour;
 import com.simibubi.create.foundation.tileEntity.behaviour.scrollvalue.INamedIconOptions;
@@ -17,7 +14,6 @@ import com.simibubi.create.foundation.utility.Lang;
 import com.simibubi.create.foundation.utility.ServerSpeedProvider;
 import com.simibubi.create.foundation.utility.VecHelper;
 import net.minecraft.block.BlockState;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntityType;
@@ -33,13 +29,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
+public class PropellerBearingTileEntity extends MechanicalBearingTileEntity implements MecanicalBearingTileEntityExtension{
     public ScrollOptionBehaviour<PropellerBearingTileEntity.RotationDirection> movementDirection;
     protected float lastGeneratedSpeed;
     public List<BlockPos> sailPositions;
     float rotationSpeed=0;
     float disassemblyTimer;
     boolean disassemblySlowdown=false;
+
     public PropellerBearingTileEntity(TileEntityType<? extends MechanicalBearingTileEntity> type) {
         super(type);
         sailPositions=new ArrayList<>();
@@ -103,7 +100,7 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
         float speed = rotationSpeed;
         if (level.isClientSide) {
             speed *= ServerSpeedProvider.get();
-            //speed += clientAngleDiff / 3f;
+            speed += clientAngleDiff / 3f;
         }
         return speed;
     }
@@ -160,11 +157,9 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
         // the closest grid-aligned angle to currentStoppingPoint
         float optimalStoppingPoint = 90f*Math.round(currentStoppingPoint/90f);
 
-        // Q is an inverse-lerp that solves this equation:
-        // optimalStoppingPoint = lerp(currentStoppingPoint,angle,Q)
-        float Q = (optimalStoppingPoint-currentStoppingPoint)/(angle-currentStoppingPoint);
+        float Q = (optimalStoppingPoint-currentStoppingPoint)/disassemblyTimer;
 
-        rotationSpeed *= (1f - 3f*Q/disassemblyTimer)*(1f - 1f/disassemblyTimer);
+        rotationSpeed = (rotationSpeed + 6f*Q/disassemblyTimer)*(1f - 1f/disassemblyTimer);
     }
     @Override
     public void attach(ControlledContraptionEntity contraption)
@@ -180,12 +175,17 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
         super.assemble();
         findSails();
     }
+
     @Override
     public void disassemble()
     {
-
         super.disassemble();
     }
+
+    public void setAssembleNextTick(boolean value) {
+        assembleNextTick = value;
+    }
+
     public void startDisassemblySlowdown()
     {
         if(!disassemblySlowdown) {
@@ -208,7 +208,7 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
 
     public void spawnParticles()
     {
-        if(getSpeed()!=0 && movedContraption!=null &&isRunning()) {
+        if(Math.abs(rotationSpeed)>0.01 && movedContraption!=null &&isRunning()) {
             World world = getLevel();
             Direction direction = getBlockState().getValue(BlockStateProperties.FACING);
             Vector3f speed = new Vector3f(direction.getNormal().getX(), direction.getNormal().getY(), direction.getNormal().getZ());
@@ -252,6 +252,11 @@ public class PropellerBearingTileEntity extends MechanicalBearingTileEntity{
             return;
         level.setBlockAndUpdate(worldPosition, getBlockState().setValue(PropellerBearingBlock.DIRECTION, direction));
         notifyUpdate();
+    }
+
+    @Override
+    public boolean isPropeller() {
+        return true;
     }
 
     static enum RotationDirection implements INamedIconOptions {

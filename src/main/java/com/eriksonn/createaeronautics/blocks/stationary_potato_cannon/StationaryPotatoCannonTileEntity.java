@@ -1,6 +1,7 @@
 package com.eriksonn.createaeronautics.blocks.stationary_potato_cannon;
 
 import com.eriksonn.createaeronautics.index.CABlocks;
+import com.eriksonn.createaeronautics.utils.PotatoProjectileEntityExtension;
 import com.simibubi.create.AllEntityTypes;
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.Create;
@@ -180,7 +181,7 @@ public class StationaryPotatoCannonTileEntity extends KineticTileEntity {
             for(int i = 0; i < projectileType.getSplit(); ++i) {
                 PotatoProjectileEntity projectile = AllEntityTypes.POTATO_PROJECTILE.create(this.level);
                 // == This is the new code that fixes the death message. ==
-                ((PotatoProjectileEntityFix) projectile).setIsFromStationaryPotatoCannon(true);
+                ((PotatoProjectileEntityExtension) projectile).setIsFromStationaryPotatoCannon(true);
                 // ========================================================
                 projectile.setItem(currentStack);
 

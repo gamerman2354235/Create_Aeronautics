@@ -1,0 +1,19 @@
+{
+	"textures": {
+		"0": "createaeronautics:block/stirling_engine"
+	},
+	"elements": [
+		{
+			"name": "piston",
+			"from": [6.5, 5, -1.5],
+			"to": [9.5, 8, 1.5],
+			"faces": {
+				"up": {"uv": [7, 13, 8, 14.5], "texture": "#0"},
+				"north": {"uv": [7, 13, 8, 14.5], "texture": "#0"},
+				"south": {"uv": [7, 13, 8, 14.5], "texture": "#0"},
+				"east": {"uv": [7, 13, 8, 14.5], "texture": "#0"},
+				"west": {"uv": [7, 13, 8, 14.5], "texture": "#0"}
+			}
+		}
+	]
+}

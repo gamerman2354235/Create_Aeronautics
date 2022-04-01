@@ -1,6 +1,8 @@
 package com.eriksonn.createaeronautics.events;
 
 import com.eriksonn.createaeronautics.CreateAeronautics;
+import com.eriksonn.createaeronautics.ponder.CAPonderIndex;
+import com.simibubi.create.foundation.ponder.PonderLocalization;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -26,5 +28,7 @@ public class DataEvents {
                 "item",
                 "%1$s was shot by a Stationary Potato Cannon using %2$s"
         );
+        CAPonderIndex.register();
+        PonderLocalization.provideRegistrateLang(CreateAeronautics.registrate());
     }
 }

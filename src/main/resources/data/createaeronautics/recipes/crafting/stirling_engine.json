@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " N ",
+    "PCP",
+    "AFA"
+  ],
+  "key": {
+    "F": {
+      "item": "minecraft:blast_furnace"
+    },
+    "A": {
+      "tag": "minecraft:planks"
+    },
+    "C": {
+      "item": "create:brass_casing"
+    },
+    "N": {
+      "item": "create:shaft"
+    },
+    "P": {
+      "tag": "forge:plates/brass"
+    }
+  },
+  "result": {
+    "item": "createaeronautics:stirling_engine",
+    "count": 1
+  }
+}

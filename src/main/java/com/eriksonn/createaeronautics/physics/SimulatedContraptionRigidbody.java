@@ -8,6 +8,7 @@ import com.eriksonn.createaeronautics.blocks.propeller_bearing.PropellerBearingT
 import com.eriksonn.createaeronautics.index.CABlocks;
 import com.eriksonn.createaeronautics.index.CAConfig;
 import com.eriksonn.createaeronautics.index.CATileEntities;
+import com.eriksonn.createaeronautics.mixins.ControlledContraptionEntityMixin;
 import com.eriksonn.createaeronautics.particle.PropellerAirParticleData;
 import com.eriksonn.createaeronautics.physics.collision.detection.Contact;
 import com.eriksonn.createaeronautics.physics.collision.detection.ICollisionDetector;
@@ -84,13 +85,14 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     public SimulatedContraptionRigidbody(AirshipContraptionEntity entity)
     {
         orientation=Quaternion.ONE.copy();
-        //orientation=new Quaternion(1,0,0,1);
+        //orientation=new Quaternion(0,1,0,1);
         //orientation.normalize();
 
         this.entity=entity;
         momentum=Vector3d.ZERO;
 
         principalRotation =Quaternion.ONE.copy();
+
         //principialRotation=new Quaternion(1,2,3,4);
         //principialRotation.normalize();
         PhysicsUtils.generateLeviCivitaTensor();
@@ -100,13 +102,14 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     {
         if(!isInitialized) {
             contraption=entity.airshipContraption;
-            //updateCenterOfMass();
+
+            generateMassDependentParameters(contraption,Vector3d.ZERO);
+            mergeMassFromSubContraptions();
+
             updateLevititeBuoyancy();
             initCollision();
             isInitialized=true;
-//            orientation=new Quaternion(new Vector3f(0, 0, 1), 180, true);
-//            momentum = new Vector3d(75.0, 0.0, 0.0);
-//            angularMomentum = new Vector3d(75, 0, 0);
+
         }
     }
     public void tick()
@@ -124,18 +127,37 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
 
         tryInit();
 
-//        addGlobalForce(centerOfMass, new Vector3d(0,-5.0,0));
+
+        //orientation=new Quaternion(0,0,0.3827f,0.9239f);
+        //orientation.normalize();
+
+
+
+        updateWings();
+        //updateInertia();
         updateTileEntityInteractions();
+        //centerOfMass=Vector3d.ZERO;
+      
         totalAccumulatedBuoyancy =0;
 
         totalAccumulatedBuoyancy += levititeBuoyancyController.apply(orientation,entity.position());
         updateRotation();
 
         globalForce=globalForce.add(0,-totalAccumulatedBuoyancy,0);
+        //globalForce=globalForce.add(0,-PhysicsUtils.gravity*mass,0);
 
         momentum = momentum.add(rotateQuat(localForce.scale(deltaTime),orientation)).add(globalForce.scale(deltaTime));
         globalForce = Vector3d.ZERO;
         localForce = Vector3d.ZERO;
+
+        if(entity.position().y<75)
+        {
+            entity.move(0,75-entity.position().y,0);
+            if(momentum.y<0)
+            {
+                momentum=momentum.multiply(1,-0.5,1);
+            }
+        }
 
         momentum=momentum.scale(0.995);
         globalVelocity=momentum.scale(1.0/mass);
@@ -386,6 +408,14 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
             findContacts(subcontraption, contacts);
         }
 
+        angularMomentum=angularMomentum.scale(0.995);
+        Vector3d v = angularVelocity.scale(PhysicsUtils.deltaTime*0.5f);
+        Quaternion q = new Quaternion((float)v.x,(float)v.y,(float)v.z, 1.0f);
+        q.mul(orientation);
+        orientation=q;
+        orientation.normalize();
+
+
         return contacts;
     }
 
@@ -597,37 +627,49 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     }
     void updateWings()
     {
-        for (Map.Entry<BlockPos, BlockState> entry : entity.sails.entrySet())
+        findSails(this.contraption);
+
+        for (Map.Entry<BlockPos, BlockState> entry : sails.entrySet())
         {
             Vector3d pos = getLocalCoordinate(entry.getKey());
             Vector3d vel = getLocalVelocityAtPosition(pos);
             Vector3d normal = getFacingVector(entry.getValue());
-            Vector3d force = normal.scale(-0.8f*normal.dot(vel));
+            Vector3d force = normal.scale(-3.0f*normal.dot(vel));
             addForce(force,pos);
         }
-        for (Map.Entry<UUID, ControlledContraptionEntity> contraptionEntityEntry : entity.subContraptions.entrySet())
+
+        for (Map.Entry<UUID, SubcontraptionRigidbody> entry : subcontraptionRigidbodyMap.entrySet())
         {
-            // TODO: make propellers not provide lift
-            if(contraptionEntityEntry.getValue() != null)
+            AbstractContraptionEntity entity = entry.getValue().entity;
+            Contraption subContraption = entity.getContraption();
+
+            entry.getValue().findSails(subContraption);
+
+            if(entity instanceof ControlledContraptionEntity) {
+                ControlledContraptionEntity controlledEntity = (ControlledContraptionEntity)entity;
+                TileEntity te = entity.level.getBlockEntity(((ControlledContraptionEntityMixin)controlledEntity).getControllerPos());
+                if (te instanceof PropellerBearingTileEntity) {
+                    continue;
+                }
+            }
+
+            for (Map.Entry<BlockPos, Template.BlockInfo> blockStateEntry : subContraption.getBlocks().entrySet())
             {
-                Contraption subContraption = contraptionEntityEntry.getValue().getContraption();
+                if(blockStateEntry.getValue().state.getBlock() instanceof SailBlock) {
 
-                for (Map.Entry<BlockPos, Template.BlockInfo> blockStateEntry : subContraption.getBlocks().entrySet())
-                {
-                    if(blockStateEntry.getValue().state.getBlock() instanceof SailBlock) {
+                    Vector3d pos = VecHelper.getCenterOf(blockStateEntry.getKey());
+                    pos=entry.getValue().toParent(pos);
 
-                        Vector3d pos = contraptionEntityEntry.getValue().applyRotation(VecHelper.getCenterOf(blockStateEntry.getKey()),0);
-                        pos.subtract(centerOfMass);
-                        Vector3d vel = getLocalVelocityAtPosition(pos);
-                        Vector3d normal = getFacingVector(blockStateEntry.getValue().state);
-                        normal = contraptionEntityEntry.getValue().applyRotation(normal,0);
-                        Vector3d force = normal.scale(-0.8f*normal.dot(vel));
-                        addForce(force,pos);
+                    Vector3d vel = getLocalVelocityAtPosition(pos);
+                    Vector3d normal = getFacingVector(blockStateEntry.getValue().state);
+                    normal = entity.applyRotation(normal,1);
+                    Vector3d force = normal.scale(-3.0f*normal.dot(vel));
+                    addForce(force,pos);
 
-                    }
                 }
             }
         }
+
     }
     public Vector3d getPlotOffset()
     {
@@ -702,7 +744,9 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     }
 
     public Vector3d getVelocityAtPoint(Vector3d pos) {
-        return globalVelocity.add(rotate(pos.cross((angularVelocity))));
+
+        return globalVelocity.add(rotate(pos.cross(angularVelocity)));
+
     }
     public Vector3d getAngularVelocity() {
         return angularVelocity;
@@ -737,6 +781,16 @@ public class SimulatedContraptionRigidbody extends AbstractContraptionRigidbody 
     Vector3d getLocalVelocityAtPosition(Vector3d pos)
     {
         return localVelocity.add(pos.cross(angularVelocity));
+    }
+    public void applyImpulse(Vector3d pos, Vector3d impulse) {
+        momentum = momentum.add(impulse);
+        globalVelocity = momentum.scale(1.0 / getMass());
+
+        // if(Math.abs(impulse.scale(1.0 / getMass()).lengthSqr()) < 0.05) return;
+
+        Vector3d additionalAngularMomentum = rotateInverse(impulse).cross(pos);
+        angularMomentum = angularMomentum.add(additionalAngularMomentum);
+        updateRotation();
     }
     Vector3d getForcePropellerBearing(BlockPos pos,PropellerBearingTileEntity te)
     {
