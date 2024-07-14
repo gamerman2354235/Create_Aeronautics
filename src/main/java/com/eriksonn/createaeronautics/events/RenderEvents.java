@@ -45,18 +45,18 @@ public class RenderEvents {
         ClientPlayerEntity player = mc.player;
         if(player == null) return;
 
-        Vector3d origin = RaycastHelper.getTraceOrigin(mc.player);
+        Vector3d playerEye = RaycastHelper.getTraceOrigin(mc.player);
 
         double reach = mc.gameMode.getPickRange();
         if (mc.hitResult != null && mc.hitResult.getLocation() != null)
             reach = Math.max(mc.hitResult.getLocation()
-                    .distanceTo(origin), reach);
+                    .distanceTo(playerEye), reach);
 
-        Vector3d target = RaycastHelper.getTraceTarget(mc.player, reach, origin);
+        Vector3d target = RaycastHelper.getTraceTarget(mc.player, reach, playerEye);
         for (AirshipContraptionEntity contraptionEntity : mc.level
-                .getEntitiesOfClass(AirshipContraptionEntity.class, new AxisAlignedBB(origin, target))) {
+                .getEntitiesOfClass(AirshipContraptionEntity.class, new AxisAlignedBB(playerEye, target))) {
 
-            Vector3d localOrigin = contraptionEntity.toLocalVector(origin, 1);
+            Vector3d localOrigin = contraptionEntity.toLocalVector(playerEye, 1);
             Vector3d localTarget = contraptionEntity.toLocalVector(target, 1);
             Contraption contraption = contraptionEntity.getContraption();
 

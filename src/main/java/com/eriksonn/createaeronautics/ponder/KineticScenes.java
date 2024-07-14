@@ -90,5 +90,6 @@ public class KineticScenes {
             scene.world.removeItemsFromBelt(util.grid.at(1, 1, 1));
             scene.world.flapFunnel(util.grid.at(1, 2, 1), false);
         }
+
     }
 }

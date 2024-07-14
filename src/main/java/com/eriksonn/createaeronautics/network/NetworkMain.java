@@ -32,7 +32,9 @@ public class NetworkMain {
         CHANNEL.registerMessage(packetID++, AirshipAddSubcontraptionPacket.class, AirshipAddSubcontraptionPacket::encode, AirshipAddSubcontraptionPacket::new, AirshipAddSubcontraptionPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(packetID++, AirshipUpdateSubcontraptionPacket.class, AirshipUpdateSubcontraptionPacket::encode, AirshipUpdateSubcontraptionPacket::new, AirshipUpdateSubcontraptionPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(packetID++, AirshipDestroySubcontraptionPacket.class, AirshipDestroySubcontraptionPacket::encode, AirshipDestroySubcontraptionPacket::new, AirshipDestroySubcontraptionPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(packetID++, PausePhysicsPacket.class, PausePhysicsPacket::encode, PausePhysicsPacket::new, PausePhysicsPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(packetID++, AirshipBEUpdatePacket.class, AirshipBEUpdatePacket::encode, AirshipBEUpdatePacket::new, AirshipBEUpdatePacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(packetID++, InspectAirshipPacket.class, InspectAirshipPacket::encode, InspectAirshipPacket::new, InspectAirshipPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
     public static <T> void sendToServer(T t) {

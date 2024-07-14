@@ -1,54 +1,54 @@
 {
   "variants": {
     "direction=push,facing=down": {
-      "model": "createaeronautics:block/propeller_bearing/block_reverse",
+      "model": "createaeronautics:block/propeller_bearing/block",
       "x": 180
     },
     "direction=pull,facing=down": {
-      "model": "createaeronautics:block/propeller_bearing/block_forward",
+      "model": "createaeronautics:block/propeller_bearing/block",
       "x": 180
     },
     "direction=push,facing=up": {
-      "model": "createaeronautics:block/propeller_bearing/block_reverse"
+      "model": "createaeronautics:block/propeller_bearing/block"
     },
     "direction=pull,facing=up": {
-      "model": "createaeronautics:block/propeller_bearing/block_forward"
+      "model": "createaeronautics:block/propeller_bearing/block"
     },
     "direction=push,facing=north": {
-      "model": "createaeronautics:block/propeller_bearing/block_reverse",
+      "model": "createaeronautics:block/propeller_bearing/block",
       "x": 90
     },
     "direction=pull,facing=north": {
-      "model": "createaeronautics:block/propeller_bearing/block_forward",
+      "model": "createaeronautics:block/propeller_bearing/block",
       "x": 90
     },
     "direction=push,facing=south": {
-      "model": "createaeronautics:block/propeller_bearing/block_reverse",
+      "model": "createaeronautics:block/propeller_bearing/block",
       "x": 90,
       "y": 180
     },
     "direction=pull,facing=south": {
-      "model": "createaeronautics:block/propeller_bearing/block_forward",
+      "model": "createaeronautics:block/propeller_bearing/block",
       "x": 90,
       "y": 180
     },
     "direction=push,facing=west": {
-      "model": "createaeronautics:block/propeller_bearing/block_reverse",
+      "model": "createaeronautics:block/propeller_bearing/block",
       "x": 90,
       "y": 270
     },
     "direction=pull,facing=west": {
-      "model": "createaeronautics:block/propeller_bearing/block_forward",
+      "model": "createaeronautics:block/propeller_bearing/block",
       "x": 90,
       "y": 270
     },
     "direction=push,facing=east": {
-      "model": "createaeronautics:block/propeller_bearing/block_reverse",
+      "model": "createaeronautics:block/propeller_bearing/block",
       "x": 90,
       "y": 90
     },
     "direction=pull,facing=east": {
-      "model": "createaeronautics:block/propeller_bearing/block_forward",
+      "model": "createaeronautics:block/propeller_bearing/block",
       "x": 90,
       "y": 90
     }

@@ -1,14 +1,13 @@
 package com.eriksonn.createaeronautics.physics.collision.shape;
 
 import com.eriksonn.createaeronautics.physics.AbstractContraptionRigidbody;
-import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.components.structureMovement.Contraption;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.IBlockReader;
 import net.minecraft.world.gen.feature.template.Template;
 
 import java.util.ArrayList;
@@ -42,9 +41,9 @@ public class MeshCollisionShapeGenerator implements ICollisionShapeGenerator {
     }
 
     @Override
-    public HashMap<BlockPos, List<ICollisionShape>> generateShapes(AbstractContraptionEntity contraption) {
+    public HashMap<BlockPos, List<ICollisionShape>> generateShapes(Contraption contraption) {
         // for every block
-        Map<BlockPos, Template.BlockInfo> blocks = contraption.getContraption().getBlocks();
+        Map<BlockPos, Template.BlockInfo> blocks = contraption.getBlocks();
 
         HashMap<BlockPos, List<ICollisionShape>> shapes = new HashMap<>();
 
@@ -64,15 +63,15 @@ public class MeshCollisionShapeGenerator implements ICollisionShapeGenerator {
             }
             
             // generate collision shapes
-            List<ICollisionShape> collisionShapes = generateFromBlock(contraption.getContraption().getContraptionWorld(), pos, block, true);
+            List<ICollisionShape> collisionShapes = generateFromBlock(pos, block, true);
             shapes.put(pos, collisionShapes);
         }
 
         return shapes;
     }
 
-    public List<ICollisionShape> generateFromBlock(IBlockReader level, BlockPos position, BlockState block, boolean isOnContraption) {
-        VoxelShape voxelShape = block.getCollisionShape(level, position);
+    public List<ICollisionShape> generateFromBlock(BlockPos position, BlockState block, boolean isOnContraption) {
+        VoxelShape voxelShape = isOnContraption ? rigidbody.adapter.getCollisionShapeOnContraption(position) : rigidbody.adapter.getCollisionShape(position);
 
         List<ICollisionShape> shapes = new ArrayList<>();
 

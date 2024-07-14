@@ -1,5 +1,6 @@
 package com.eriksonn.createaeronautics.physics;
 
+import com.eriksonn.createaeronautics.physics.api.PhysicsAdapter;
 import com.eriksonn.createaeronautics.physics.collision.shape.ICollisionShape;
 import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.components.structureMovement.Contraption;
@@ -19,6 +20,7 @@ public abstract class AbstractContraptionRigidbody implements IRigidbody{
     public double[][] localInertiaTensor=new double[3][3];
     public double localMass;
     public Map<BlockPos, BlockState> sails = new HashMap<>();
+    public PhysicsAdapter adapter;
     public void generateMassDependentParameters(Contraption contraption,Vector3d offset)
     {
         localMass=0;
@@ -76,6 +78,5 @@ public abstract class AbstractContraptionRigidbody implements IRigidbody{
     }
     //#endregion
 
-    public abstract AbstractContraptionEntity getContraption();
     abstract public Vector3d getPlotOffset();
 }

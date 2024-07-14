@@ -1,6 +1,7 @@
 package com.eriksonn.createaeronautics.physics.collision.shape;
 
 import com.simibubi.create.content.contraptions.components.structureMovement.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.components.structureMovement.Contraption;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
@@ -20,11 +21,11 @@ public interface ICollisionShapeGenerator {
      * @param contraption The contraption to generate the collision shape from.
      * @return The generated collision shapes.
      */
-    HashMap<BlockPos, List<ICollisionShape>> generateShapes(AbstractContraptionEntity contraption);
+    HashMap<BlockPos, List<ICollisionShape>> generateShapes(Contraption contraption);
 
     /**
      * Generates collision shapes given a block
      */
-    List<ICollisionShape> generateFromBlock(IBlockReader level, BlockPos position, BlockState block, boolean isOnContraption);
+    List<ICollisionShape> generateFromBlock(BlockPos position, BlockState block, boolean isOnContraption);
 
 }

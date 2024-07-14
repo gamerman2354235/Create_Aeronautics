@@ -59,12 +59,11 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
             contraption.removeBlocksFromWorld(this.level, BlockPos.ZERO);
             this.movedContraption = AirshipContraptionEntity.create(this.level, contraption);
             BlockPos anchor = this.worldPosition;
-            this.movedContraption.simulatedRigidbody.tryInit();
 
             this.movedContraption.setPos(
-                    (double)anchor.getX()+this.movedContraption.centerOfMassOffset.x,
-                    (double)anchor.getY()+this.movedContraption.centerOfMassOffset.y,
-                    (double)anchor.getZ()+this.movedContraption.centerOfMassOffset.z);
+                    (double)anchor.getX()-this.movedContraption.centerOfMassOffset.x,
+                    (double)anchor.getY()-this.movedContraption.centerOfMassOffset.y,
+                    (double)anchor.getZ()-this.movedContraption.centerOfMassOffset.z);
             this.level.addFreshEntity(this.movedContraption);
             AllSoundEvents.CONTRAPTION_ASSEMBLE.playOnServer(this.level, this.worldPosition);
             this.running = true;
@@ -90,7 +89,6 @@ public class AirshipAssemblerTileEntity extends SmartTileEntity implements IDisp
         }
         if(this.movedContraption!=null)
         {
-
 time++;
 float angle=time*5.5f;
 MatrixStack[] stack = new MatrixStack[1];

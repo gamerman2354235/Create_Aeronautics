@@ -23,8 +23,6 @@ abstract public class AbstractContraptionBasedCollisionDetector implements IColl
 // iterate over all collision shapes
         final HashMap<BlockPos, List<ICollisionShape>> collisionShapes = rb.getCollisionShapes();
 
-        World contraptionLevel = rb.getContraption().level;
-
         for (Map.Entry<BlockPos, List<ICollisionShape>> shapeEntry : collisionShapes.entrySet()) {
 
             // check if this block is not fully surrounded
@@ -45,12 +43,12 @@ abstract public class AbstractContraptionBasedCollisionDetector implements IColl
                             BlockPos worldPos = new BlockPos(x, y, z);
 
                             // if the block is not air, we need to check for collisions
-                            BlockState state = contraptionLevel.getBlockState(worldPos);
+                            BlockState state = rb.adapter.getBlockState(worldPos);
                             Block block = state.getBlock();
                             if(block == Blocks.AIR) continue;
 
                             // get the collision shape of the block
-                            List<ICollisionShape> blockShape = new MeshCollisionShapeGenerator(rb).generateFromBlock(contraptionLevel, worldPos, state, false);
+                            List<ICollisionShape> blockShape = new MeshCollisionShapeGenerator(rb).generateFromBlock(worldPos, state, false);
 
                             // if the block has no collision shape, we can skip it
                             if(blockShape.isEmpty()) continue;

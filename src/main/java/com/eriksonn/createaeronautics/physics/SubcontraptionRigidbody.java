@@ -10,6 +10,7 @@ public class SubcontraptionRigidbody extends AbstractContraptionRigidbody {
     {
         this.entity=entity;
         this.parentRigidbody=parentRigidbody;
+        this.adapter = parentRigidbody.adapter;
     }
 
 
@@ -34,18 +35,18 @@ public class SubcontraptionRigidbody extends AbstractContraptionRigidbody {
 
 
     public Vector3d rotate(Vector3d point) {
-        return parentRigidbody.rotate(entity.applyRotation(point,1));
+        return parentRigidbody.rotate(entity.applyRotation(point,0));
     }
 
     public Vector3d rotateInverse(Vector3d point) {
-        return entity.reverseRotation(parentRigidbody.rotateInverse(point),1);
+        return entity.reverseRotation(parentRigidbody.rotateInverse(point),0);
     }
     public Vector3d rotateLocal(Vector3d point) {
-        return entity.applyRotation(point,1);
+        return entity.applyRotation(point,0);
     }
 
     public Vector3d rotateLocalInverse(Vector3d point) {
-        return entity.reverseRotation(point,1);
+        return entity.reverseRotation(point,0);
     }
 
     public Vector3d toLocal(Vector3d globalPoint) {
@@ -87,8 +88,8 @@ public class SubcontraptionRigidbody extends AbstractContraptionRigidbody {
 
 
     public void applyImpulse(Vector3d pos, Vector3d velocity) {
-        parentRigidbody.applyImpulse(toParent(pos),entity.reverseRotation(velocity,0));
-
+        parentRigidbody.applyImpulse(toParent(pos), entity.reverseRotation(velocity, 0));
+    }
 
     public void applyGlobalImpulse(Vector3d pos, Vector3d velocity) {
         parentRigidbody.applyGlobalImpulse(toParent(pos),velocity);
@@ -102,11 +103,6 @@ public class SubcontraptionRigidbody extends AbstractContraptionRigidbody {
     {
         Vector3d entityOffsetPosition = entity.position().subtract(parentRigidbody.getPlotOffset());
         return entity.reverseRotation(point.subtract(entityOffsetPosition),1);
-    }
-
-    @Override
-    public AbstractContraptionEntity getContraption() {
-        return entity;
     }
 
     @Override

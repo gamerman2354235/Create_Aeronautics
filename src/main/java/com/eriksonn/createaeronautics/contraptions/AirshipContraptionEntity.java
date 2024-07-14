@@ -9,6 +9,7 @@ import com.eriksonn.createaeronautics.network.NetworkMain;
 import com.eriksonn.createaeronautics.network.packet.*;
 import com.eriksonn.createaeronautics.physics.SimulatedContraptionRigidbody;
 import com.eriksonn.createaeronautics.physics.SubcontraptionRigidbody;
+import com.eriksonn.createaeronautics.physics.api.ContraptionEntityPhysicsAdapter;
 import com.eriksonn.createaeronautics.physics.collision.shape.ICollisionShape;
 import com.eriksonn.createaeronautics.physics.collision.shape.MeshCollisionShape;
 import com.eriksonn.createaeronautics.utils.AbstractContraptionEntityExtension;
@@ -19,6 +20,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.simibubi.create.AllMovementBehaviours;
 import com.simibubi.create.content.contraptions.components.structureMovement.*;
 import com.simibubi.create.content.contraptions.components.structureMovement.render.ContraptionRenderDispatcher;
+import com.simibubi.create.content.curiosities.tools.ExtendoGripItem;
 import com.simibubi.create.foundation.collision.Matrix3d;
 import com.simibubi.create.foundation.tileEntity.SmartTileEntity;
 import com.simibubi.create.foundation.utility.AngleHelper;
@@ -69,6 +71,7 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
 
     float time = 0;
 
+    public boolean playPhysics = true;
     public Quaternion quat = Quaternion.ONE;
     public Vector3d velocity;
     public AirshipContraption airshipContraption;
@@ -87,21 +90,22 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
 
     public AirshipContraptionEntity(EntityType<?> type, World world) {
         super(type, world);
-        simulatedRigidbody = new SimulatedContraptionRigidbody(this);
-
+        simulatedRigidbody = new SimulatedContraptionRigidbody((AirshipContraption) getContraption(), new ContraptionEntityPhysicsAdapter(this));
         // testing
 //        this.simulatedRigidbody.angularMomentum = new Vector3d(0, 0, 40);
 
+        airshipContraption = (AirshipContraption) contraption;
         System.out.println("New airship entity");
     }
 
     public static AirshipContraptionEntity create(World world, AirshipContraption contraption) {
         AirshipContraptionEntity entity = new AirshipContraptionEntity((EntityType) CAEntityTypes.AIRSHIP_CONTRAPTION.get(), world);
         entity.setContraption(contraption);
-
         entity.airshipContraption = contraption;
+        entity.simulatedRigidbody = new SimulatedContraptionRigidbody((AirshipContraption) entity.airshipContraption, new ContraptionEntityPhysicsAdapter(entity));
         AirshipManager.INSTANCE.tryAddEntity(AirshipManager.INSTANCE.getNextId(), entity);
 
+        entity.simulatedRigidbody.tryInit();
         return entity;
 
     }
@@ -116,13 +120,22 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
 
     @Override
     public void tickContraption() {
+        airshipContraption = (AirshipContraption) contraption;
+        simulatedRigidbody.contraption = airshipContraption;
         AirshipAssemblerTileEntity controller = getController();
         airshipContraption = (AirshipContraption) contraption;
 
         if (controller != null)
             controller.attach(this);
 
-        simulatedRigidbody.tick();
+        if(playPhysics) {
+            simulatedRigidbody.tick();
+            this.centerOfMassOffset = simulatedRigidbody.getCenterOfMass();
+            quat=simulatedRigidbody.orientation.copy();
+            double deltaTime = 0.05;
+            velocity=simulatedRigidbody.globalVelocity.scale(deltaTime);
+            move(simulatedRigidbody.globalVelocity.x* deltaTime,simulatedRigidbody.globalVelocity.y* deltaTime,simulatedRigidbody.globalVelocity.z* deltaTime);
+        }
 
         if (!airshipInitialized) {
             initFakeClientWorld();
@@ -135,7 +148,7 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
             for (ControlledContraptionEntity contraptionEntity : subContraptions.values()) {
                 contraptionEntity.tick();
             }
-            fakeClientWorld.tickEntities();
+//            fakeClientWorld.tickEntities();
 
             fakeClientWorld.tickBlockEntities();
             profiler.endTick();
@@ -210,9 +223,11 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
         if (pKey.equals(physicsDataAccessor)) {
             CompoundNBT tag = this.entityData.get((DataParameter<CompoundNBT>) pKey);
 
-            simulatedRigidbody.momentum = simulatedRigidbody.arrayToVec(readDoubleArray(tag, "momentum"));
-            simulatedRigidbody.angularMomentum = simulatedRigidbody.arrayToVec(readDoubleArray(tag, "angularMomentum"));
-            simulatedRigidbody.orientation = simulatedRigidbody.arrayToQuat(readDoubleArray(tag, "orientation"));
+            if(tag.contains("momentum")) {
+                simulatedRigidbody.momentum = simulatedRigidbody.arrayToVec(readDoubleArray(tag, "momentum"));
+                simulatedRigidbody.angularMomentum = simulatedRigidbody.arrayToVec(readDoubleArray(tag, "angularMomentum"));
+                simulatedRigidbody.orientation = simulatedRigidbody.arrayToQuat(readDoubleArray(tag, "orientation"));
+            }
         }
     }
 
@@ -469,6 +484,13 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
 
     public boolean handlePlayerInteraction(PlayerEntity player, BlockPos localPos, Direction side,
                                            Hand interactionHand) {
+
+
+        if(player.getItemInHand(interactionHand).getItem() instanceof ExtendoGripItem){
+            simulatedRigidbody.addGlobalForce(player.getLookAngle().scale(100.0), new Vector3d(localPos.getX(), localPos.getY(), localPos.getZ()));
+            return true;
+        }
+
         int indexOfSeat = contraption.getSeats()
                 .indexOf(localPos);
         if (indexOfSeat == -1 && player instanceof ServerPlayerEntity) {
@@ -479,7 +501,7 @@ public class AirshipContraptionEntity extends AbstractContraptionEntity {
             try {
                 state.getBlock().use(state, worldIn, dimensionPos, player, interactionHand, null);
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
             return true;
         }
